@@ -1,31 +1,19 @@
 {
-  "name" : "zomboidassetconverter",
-  "version-string" : "1.0.0",
-  "builtin-baseline" : "57c08a3223a1ec03c3a31986ee38d32e90b6039c",
-  "dependencies" : [ {
-    "name" : "imgui",
-    "version>=" : "1.91.7",
-    "features" : [ "freetype", "glfw-binding", "opengl3-binding" ]
-  }, {
-    "name" : "cxxopts",
-    "version>=" : "3.2.1"
-  }, {
-    "name" : "glfw3",
-    "version>=" : "3.4#1"
-  }, {
-    "name" : "glad",
-    "version>=" : "0.1.36"
-  }, {
-    "name" : "freetype",
-    "version>=" : "2.13.3"
-  }, {
-    "name" : "assimp",
-    "version>=" : "5.4.3"
-  }, {
-    "name" : "spdlog",
-    "version>=" : "1.15.0#1"
-  }, {
-    "name" : "boost-lexical-cast",
-    "version>=" : "1.86.0"
-  } ]
+    "name": "zomboidassetconverter",
+    "version-string": "1.0.0",
+    "builtin-baseline": "57c08a3223a1ec03c3a31986ee38d32e90b6039c",
+    "dependencies": [
+        {
+            "name": "cxxopts",
+            "version>=": "3.2.1"
+        },
+        {
+            "name": "assimp",
+            "version>=": "5.4.3"
+        },
+        {
+            "name": "spdlog",
+            "version>=": "1.15.0#1"
+        }
+    ]
 }

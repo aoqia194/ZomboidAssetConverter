@@ -1,6 +1,0 @@
-#ifndef IMCONFIG_H
-#define IMCONFIG_H
-
-#define IMGUI_ENABLE_FREETYPE
-
-#endif //IMCONFIG_H

@@ -1,22 +1,17 @@
 #include "main.h"
 
+#include "asset.h"
 #include "cxxopts.hpp"
-#include "gui.h"
-#include "window.h"
 
 #include "assimp\DefaultLogger.hpp"
 #include "assimp\Logger.hpp"
 
 #include "spdlog\spdlog.h"
-
-extern fs::path exe_dir;
-extern fs::path in_dir;
-extern fs::path out_dir;
-extern fs::path in_assets_dir;
-extern fs::path out_fixed_dir;
-extern fs::path out_assets_dir;
+#include "spdlog\stopwatch.h"
+#include "spdlog\sinks\stdout_color_sinks.h"
 
 int main(const int argc, const char **argv) {
+    set_default_logger(spdlog::stdout_color_mt(PROJECT_NAME));
     spdlog::enable_backtrace(5);
     spdlog::set_level(spdlog::level::info);
 
@@ -24,27 +19,70 @@ int main(const int argc, const char **argv) {
 
     cxxopts::Options options(PROJECT_NAME, PROJECT_DESC);
     options.add_options()
-        ("h,help", "Print program usage")
         ("v,verbose", "Enable verbose log output")
-        ("d,debug", "Enable debugging");
+        ("h,help", "Print program usage")
+        ("i,input", "Path to input directory", cxxopts::value<std::string>())
+        ("o,output", "(optional) Path to output directory", cxxopts::value<std::string>()->default_value(""));
+    options.add_options("assets")
+        ("f,fix-assets", "Fix input asset files")
+        ("a,convert-assets", "Convert assets");
+    options.add_options("maps")
+        ("m,convert-maps", "Convert maps");
+    options.parse_positional({ "input" });
     const auto result = options.parse(argc, argv);
 
-    if (result["verbose"].as<bool>()) spdlog::set_level(spdlog::level::trace);
+    if (result["verbose"].as<bool>()) {
+        spdlog::set_level(spdlog::level::trace);
+        Assimp::DefaultLogger::create("assimp.log", Assimp::Logger::VERBOSE);
+    }
     if (result["help"].as<bool>()) {
-        spdlog::info(options.help());
+        SPDLOG_INFO(options.help());
         return 0;
     }
-    if (result["debug"].as<bool>()) {
-        Assimp::DefaultLogger::create("AssimpLog.txt", Assimp::Logger::VERBOSE);
+    const auto input = result["input"].as<std::string>();
+    const auto output = result["output"].as<std::string>();
+
+    // yummyyy
+    const fs::path exe_dir = fs::path(argv[0]).parent_path();
+    const fs::path in_dir = !input.empty() ? input : exe_dir / "in" / "assets";
+    const fs::path out_dir = !output.empty() ? output : exe_dir / "out";
+    const fs::path out_fixed_dir = out_dir / "fixed";
+    const fs::path out_assets_dir = out_dir / "assets";
+
+    // Fix the assets if needed.
+    if (result["fix-assets"].as<bool>()) {
+        spdlog::stopwatch sw;
+        for (const auto &entry: fs::recursive_directory_iterator(in_dir)) {
+            if (!entry.is_regular_file()) continue;
+            const auto &entry_path = entry.path();
+            const auto out = out_fixed_dir / relative(entry_path, in_dir);
+
+            if (!asset::fix(entry_path, out)) {
+                SPDLOG_ERROR("Failed to fix all assets. Stopped to prevent issues.");
+                return 1;
+            }
+        }
+        SPDLOG_INFO("Fixing assets took {:.2}s", sw);
     }
 
-    exe_dir = fs::path(argv[0]).parent_path();
-    in_dir = exe_dir / "in";
-    out_dir = exe_dir / "out";
-    in_assets_dir = in_dir / "assets";
-    out_fixed_dir = out_dir / "fixed";
-    out_assets_dir = out_dir / "assets";
+    // Convert the assets if needed.
+    if (result["convert-assets"].as<bool>()) {
+        const auto in = result["fix-assets"].as<bool>() ? out_fixed_dir : in_dir;
 
-    // Create window! The fun stuff begins :D
-    return window::init();
+        spdlog::stopwatch sw;
+        for (const auto &entry: fs::recursive_directory_iterator(in)) {
+            if (!entry.is_regular_file()) continue;
+            const auto &entry_path = entry.path();
+            const auto out_path = (out_assets_dir / relative(entry_path, in)).replace_extension("gltf");
+
+            if (!asset::load(entry_path) || !asset::dump("gltf2", out_path)) {
+                SPDLOG_ERROR("Failed to dump all assets. Stopped to prevent issues.");
+                return 1;
+            }
+        }
+        SPDLOG_INFO("Converting assets took {:.2}s", sw);
+    }
+
+    SPDLOG_INFO("💖 Completed! Have a nice day.");
+    return 0;
 }

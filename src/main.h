@@ -2,17 +2,12 @@
 #define MAIN_H
 
 #define PROJECT_NAME "ZomboidAssetConverter"
-#define PROJECT_DESC "Imports, optionally fixes, and exports Zomboid .X files."
+#define PROJECT_DESC "Imports, optionally fixes, and exports Zomboid .X files. Imports and exports Zomboid maps."
 
 #include <filesystem>
 
-namespace fs = std::filesystem;
+#include "spdlog\logger.h"
 
-inline fs::path exe_dir;
-inline fs::path in_dir;
-inline fs::path out_dir;
-inline fs::path in_assets_dir;
-inline fs::path out_fixed_dir;
-inline fs::path out_assets_dir;
+namespace fs = std::filesystem;
 
 #endif //MAIN_H

@@ -6,15 +6,7 @@
 #include "assimp\scene.h"
 
 namespace asset {
-    namespace scene {
-        inline std::shared_ptr<const aiScene *> instance;
-        inline aiMemoryInfo meminfo;
-        inline unsigned int nodes;
-    }
-
-    constexpr static const char *EXPORTER_FORMAT_PREVIEW[] = { "FBX", "glTF2", "OBJ" };
-    constexpr static const char *FILE_FORMATS[] = { "fbx", "gltf", "obj" };
-    constexpr static const char *EXPORTER_FORMATS[] = { "fbx", "gltf2", "obj" };
+    inline std::shared_ptr<const aiScene *> _scene;
 
     /**
      * Dumps the loaded scene to a file.

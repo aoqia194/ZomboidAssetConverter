@@ -8,13 +8,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
-find_package(Boost REQUIRED COMPONENTS lexical_cast)
+find_package(assimp CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-find_package(Freetype REQUIRED)
-find_package(imgui CONFIG REQUIRED)
-find_package(assimp CONFIG REQUIRED)
+
+# For assimp to be built as a static library.
+set(BUILD_SHARED_LIBS OFF)
 
 add_subdirectory(src)

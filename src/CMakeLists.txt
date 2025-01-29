@@ -16,23 +16,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall -Werror -Wno-unused-)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall -Werror)
 elseif (MSVC)
     # DONT USE MSVC, IT'S CANCER!!!!
-    target_compile_options(${PROJECT_NAME} PRIVATE /Wall)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
 endif ()
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
-        Boost::lexical_cast
-        spdlog::spdlog
-        cxxopts::cxxopts
-        glad::glad
-        glfw
-        Freetype::Freetype
-        imgui::imgui
-        assimp::assimp)
-
-if (MSVC)
-    set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY VS_DEBUGGER_COMMAND ${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:${CMAKE_PROJECT_NAME}>)
-    set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
-endif ()
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog::spdlog cxxopts::cxxopts assimp::assimp)
