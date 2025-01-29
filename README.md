@@ -1,10 +1,21 @@
 # ZomboidAssetConverter
 
-It's not user friendly as of current, so this documentation is going to be really brief. It is originally meant to be strictly cli-only, and is still going to be the case in the next release.
+A cli program to convert between certain data formats that are used by the game Project Zomboid.
+
+## Features
+
+- Convert DirectX to glTF2 for easy viewing of the original Project Zomboid animations.
 
 ## Usage
 
-- The assets (.X) you want to convert: (`in/assets/SomeAsset.X` ...)
-- Press `Fix All` and wait for console to stop logging.
-- Press `Dump All` and wait for console to stop logging.
-- The assets (.GLTF) you receive reside here: (`out/assets/SomeAsset.gltf` ...)
+Viewing all of the options you can use:
+
+```sh
+./ZomboidAssetExtractor --help
+```
+
+To convert a folder of DirectX files:
+
+```sh
+./ZomboidAssetExtractor "C:\dev\zomboid_assets\anims_X" --output "C:\dev\zomboid_assets\anims_X_converted" --fix-assets --convert-assets
+```
