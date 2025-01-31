@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 find_package(assimp CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
+find_package(pugixml CONFIG REQUIRED)
 
 # For assimp to be built as a static library.
 set(BUILD_SHARED_LIBS OFF)

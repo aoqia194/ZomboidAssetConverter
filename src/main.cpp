@@ -1,7 +1,8 @@
-#include "main.h"
+#include "main.hpp"
 
-#include "asset.h"
+#include "asset.hpp"
 #include "cxxopts.hpp"
+#include "map.hpp"
 
 #include "assimp\DefaultLogger.hpp"
 #include "assimp\Logger.hpp"
@@ -35,22 +36,32 @@ int main(const int argc, const char **argv) {
         spdlog::set_level(spdlog::level::trace);
         Assimp::DefaultLogger::create("assimp.log", Assimp::Logger::VERBOSE);
     }
+
     if (result["help"].as<bool>()) {
-        SPDLOG_INFO(options.help());
+        spdlog::info(options.help());
         return 0;
     }
     const auto input = result["input"].as<std::string>();
     const auto output = result["output"].as<std::string>();
+    const auto fix_assets = result["fix-assets"].as<bool>();
+    const auto convert_assets = result["convert-assets"].as<bool>();
+    const auto convert_maps = result["convert-maps"].as<bool>();
 
     // yummyyy
     const fs::path exe_dir = fs::path(argv[0]).parent_path();
-    const fs::path in_dir = !input.empty() ? input : exe_dir / "in" / "assets";
+    const fs::path in_dir = !input.empty() ? input : exe_dir / "in";
     const fs::path out_dir = !output.empty() ? output : exe_dir / "out";
     const fs::path out_fixed_dir = out_dir / "fixed";
     const fs::path out_assets_dir = out_dir / "assets";
+    const fs::path out_maps_dir = out_dir / "maps";
+
+    if ((fix_assets || convert_assets) && convert_maps) {
+        spdlog::error("Cannot fix/convert assets at the same time as converting maps.");
+        return 1;
+    }
 
     // Fix the assets if needed.
-    if (result["fix-assets"].as<bool>()) {
+    if (fix_assets) {
         spdlog::stopwatch sw;
         for (const auto &entry: fs::recursive_directory_iterator(in_dir)) {
             if (!entry.is_regular_file()) continue;
@@ -58,16 +69,16 @@ int main(const int argc, const char **argv) {
             const auto out = out_fixed_dir / relative(entry_path, in_dir);
 
             if (!asset::fix(entry_path, out)) {
-                SPDLOG_ERROR("Failed to fix all assets. Stopped to prevent issues.");
+                spdlog::error("Failed to fix all assets. Stopped to prevent issues.");
                 return 1;
             }
         }
-        SPDLOG_INFO("Fixing assets took {:.2}s", sw);
+        spdlog::info("Fixing assets took {:.2}s", sw);
     }
 
     // Convert the assets if needed.
-    if (result["convert-assets"].as<bool>()) {
-        const auto in = result["fix-assets"].as<bool>() ? out_fixed_dir : in_dir;
+    if (convert_assets) {
+        const auto in = fix_assets ? out_fixed_dir : in_dir;
 
         spdlog::stopwatch sw;
         for (const auto &entry: fs::recursive_directory_iterator(in)) {
@@ -76,13 +87,72 @@ int main(const int argc, const char **argv) {
             const auto out_path = (out_assets_dir / relative(entry_path, in)).replace_extension("gltf");
 
             if (!asset::load(entry_path) || !asset::dump("gltf2", out_path)) {
-                SPDLOG_ERROR("Failed to dump all assets. Stopped to prevent issues.");
+                spdlog::error("Failed to dump all assets. Stopped to prevent issues.");
                 return 1;
             }
         }
-        SPDLOG_INFO("Converting assets took {:.2}s", sw);
+        spdlog::info("Converting assets took {:.2}s", sw);
     }
 
-    SPDLOG_INFO("💖 Completed! Have a nice day.");
+    // Convert the maps if needed.
+    if (convert_maps) {
+        spdlog::stopwatch sw;
+
+        for (const auto &map: fs::directory_iterator(in_dir)) {
+            if (!map.is_directory()) continue;
+            const auto &map_path = map.path();
+            const auto &map_name = map_path.stem().string();
+            const auto out_path = out_maps_dir / relative(map, in_dir);
+            spdlog::trace("dir {}", map.path().string());
+
+            for (const auto &entry: fs::directory_iterator(map)) {
+                if (!entry.is_regular_file()) continue;
+
+                const auto &entry_path = entry.path();
+                if (entry_path.extension() != ".lotheader") continue;
+
+                const auto &entry_stem = entry_path.stem().string();
+                const auto p = entry_stem.find_first_of('_');
+
+                const auto cell_x = std::stoul(entry_stem.substr(0, p));
+                const auto cell_y = std::stoul(entry_stem.substr(p + 1));
+                map::_worldx = cell_x;
+                map::_worldy = cell_y;
+
+                if (cell_x >= map::_width) map::_width = cell_x + 1;
+                if (cell_y >= map::_height) map::_height = cell_y + 1;
+
+                const auto rel_path = relative(entry_path, in_dir);
+                spdlog::debug("Found map cell {}", rel_path.string());
+
+                const auto header_ret = map::read_lotheader(entry_path);
+                if (!header_ret) {
+                    spdlog::error("Failed to read lotheader file {}", entry_path.string());
+                    return 1;
+                }
+
+                const auto lotpack_file = entry_path.parent_path() / std::format("world_{}_{}.lotpack", cell_x, cell_y);
+                const auto pack_ret = map::read_lotpack(lotpack_file);
+                if (!pack_ret) {
+                    spdlog::error("Failed to read lotpack file {}", lotpack_file.string());
+                    return 1;
+                }
+
+                map::_index++;
+            }
+
+            const auto pzw_path = out_path / (map_name + ".pzw");
+            const auto pzw_ret = map::write_pzw(pzw_path);
+            if (!pzw_ret) {
+                spdlog::error("Failed to write PZW map file {}", pzw_path.string());
+                return 1;
+            }
+        }
+
+        spdlog::info("Converting maps took {:.2}s", sw);
+        spdlog::info("Don't forget to copy the tiles that the map uses to the 'tiles\\' folder!");
+    }
+
+    spdlog::info("💖 Completed! Have a nice day.");
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "asset.h"
+#include "asset.hpp"
 
 #include <fstream>
 #include <regex>
@@ -19,16 +19,16 @@ namespace asset {
     bool dump(const char *format, const fs::path &out) {
         create_directories(out.parent_path());
 
-        SPDLOG_DEBUG("Exporting asset scene to {}", out.string());
+        spdlog::debug("Exporting asset scene to {}", out.string());
         const auto res = _exporter->Export(*_scene, format, out.string(), aiProcess_ValidateDataStructure);
         if (res != AI_SUCCESS) {
-            spdlog::error("❌ Failed to export scene: {}", _exporter->GetErrorString());
+            spdlog::error("Failed to export scene: {}", _exporter->GetErrorString());
         }
-        SPDLOG_INFO("Saved exported file at {}", out.string());
+        spdlog::info("Saved exported file at {}", out.string());
 
         // SHOULDN'T need to explicitly reset because the scene SHOULD get deleted when this goes out of scope.
         // But we do because idk why the smart pointer isn't resetting automatically.
-        SPDLOG_DEBUG("Resetting assimp scene.");
+        spdlog::debug("Resetting assimp scene.");
         _scene.reset();
 
         return res == AI_SUCCESS;
@@ -37,14 +37,14 @@ namespace asset {
     bool load(const fs::path &in) {
         auto path_str = in.string();
         if (in.empty() || !exists(in)) {
-            SPDLOG_WARN("Asset {} does not exist.", path_str);
+            spdlog::warn("Asset {} does not exist.", path_str);
             return false;
         }
 
-        SPDLOG_DEBUG("Loading scene for asset: {}", path_str);
+        spdlog::debug("Loading scene for asset: {}", path_str);
 
         if (_scene != nullptr) {
-            SPDLOG_WARN("Previously loaded scene found. It WILL get discarded!");
+            spdlog::warn("Previously loaded scene found. It WILL get discarded!");
         }
 
         _scene = std::make_shared<const aiScene *>(_importer->ReadFile(
@@ -52,7 +52,7 @@ namespace asset {
             aiProcess_ValidateDataStructure | aiProcess_FindInvalidData | aiProcess_GlobalScale |
             aiProcess_SortByPType));
         if (_scene == nullptr || (*_scene)->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-            SPDLOG_ERROR("Failed to load asset at {}: {}", path_str, _importer->GetErrorString());
+            spdlog::error("Failed to load asset at {}: {}", path_str, _importer->GetErrorString());
             return false;
         }
 
@@ -61,13 +61,13 @@ namespace asset {
 
     bool fix(const fs::path &in, const fs::path &out) {
         if (!exists(in)) {
-            SPDLOG_ERROR("Asset {} does not exist", in.string());
+            spdlog::error("Asset {} does not exist", in.string());
             return false;
         }
 
         auto infile = std::ifstream(in);
         if (!infile.is_open()) {
-            SPDLOG_ERROR("Could not open asset {}", in.string());
+            spdlog::error("Could not open asset {}", in.string());
             return false;
         }
 
@@ -78,7 +78,7 @@ namespace asset {
         int i = 0;
         while (getline(infile, line)) {
             if (std::regex_match(line, m, BROKEN_XANIM_REGEX)) {
-                SPDLOG_DEBUG("Found bugged DirectX format at line {}.", i);
+                spdlog::debug("Found bugged DirectX format at line {}.", i);
             } else {
                 buf << line + "\n";
             }
@@ -91,14 +91,14 @@ namespace asset {
 
         auto outfile = std::ofstream(out);
         if (!outfile.is_open()) {
-            SPDLOG_ERROR("Could not open output file {}", out.string());
+            spdlog::error("Could not open output file {}", out.string());
             return false;
         }
 
         outfile << buf.str();
         outfile.close();
 
-        SPDLOG_INFO("Saved fixed file at {}", out.string());
+        spdlog::info("Saved fixed file at {}", out.string());
         return true;
     }
 }
