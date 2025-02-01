@@ -6,11 +6,32 @@
 #include "map\lotheader.hpp"
 #include "map\lotpack.hpp"
 
-class Map {
-public:
-private:
-    uint32_t ;
-};
+namespace pz {
+    class map {
+    public:
+        map() = default;
+
+        bool write(const fs::path &out);
+
+        bool read(const fs::path &in);
+
+    private:
+        bool write_pzw(const fs::path &out);
+
+        bool write_tmx();
+
+        bool read_lotpack(const fs::path &in);
+
+        bool read_lotheader(const fs::path &in);
+
+        //! The width of the map in chunks.
+        uint32_t w = 0;
+        //! The height of the map in chunks.
+        uint32_t h = 0;
+        //! The map's lotheader files.
+        std::vector<lotheader> lotheaders{};
+    };
+}
 
 namespace map {
     //! The index of the currently processed header/pack file.

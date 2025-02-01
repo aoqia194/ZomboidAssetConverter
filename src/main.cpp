@@ -23,7 +23,8 @@ int main(const int argc, const char **argv) {
         ("v,verbose", "Enable verbose log output")
         ("h,help", "Print program usage")
         ("i,input", "Path to input directory", cxxopts::value<std::string>())
-        ("o,output", "(optional) Path to output directory", cxxopts::value<std::string>()->default_value(""));
+        ("o,output", "(optional) Path to output directory",
+         cxxopts::value<std::string>()->default_value(""));
     options.add_options("assets")
         ("f,fix-assets", "Fix input asset files")
         ("a,convert-assets", "Convert assets");
@@ -49,8 +50,8 @@ int main(const int argc, const char **argv) {
 
     // yummyyy
     const fs::path exe_dir = fs::path(argv[0]).parent_path();
-    const fs::path in_dir = !input.empty() ? input : exe_dir / "in";
-    const fs::path out_dir = !output.empty() ? output : exe_dir / "out";
+    in_dir = !input.empty() ? input : exe_dir / "in";
+    out_dir = !output.empty() ? output : exe_dir / "out";
     const fs::path out_fixed_dir = out_dir / "fixed";
     const fs::path out_assets_dir = out_dir / "assets";
     const fs::path out_maps_dir = out_dir / "maps";
@@ -84,7 +85,8 @@ int main(const int argc, const char **argv) {
         for (const auto &entry: fs::recursive_directory_iterator(in)) {
             if (!entry.is_regular_file()) continue;
             const auto &entry_path = entry.path();
-            const auto out_path = (out_assets_dir / relative(entry_path, in)).replace_extension("gltf");
+            const auto out_path = (out_assets_dir / relative(entry_path, in)).
+                replace_extension("gltf");
 
             if (!asset::load(entry_path) || !asset::dump("gltf2", out_path)) {
                 spdlog::error("Failed to dump all assets. Stopped to prevent issues.");
@@ -105,40 +107,10 @@ int main(const int argc, const char **argv) {
             const auto out_path = out_maps_dir / relative(map, in_dir);
             spdlog::trace("dir {}", map.path().string());
 
-            for (const auto &entry: fs::directory_iterator(map)) {
-                if (!entry.is_regular_file()) continue;
-
-                const auto &entry_path = entry.path();
-                if (entry_path.extension() != ".lotheader") continue;
-
-                const auto &entry_stem = entry_path.stem().string();
-                const auto p = entry_stem.find_first_of('_');
-
-                const auto cell_x = std::stoul(entry_stem.substr(0, p));
-                const auto cell_y = std::stoul(entry_stem.substr(p + 1));
-                map::_worldx = cell_x;
-                map::_worldy = cell_y;
-
-                if (cell_x >= map::_width) map::_width = cell_x + 1;
-                if (cell_y >= map::_height) map::_height = cell_y + 1;
-
-                const auto rel_path = relative(entry_path, in_dir);
-                spdlog::debug("Found map cell {}", rel_path.string());
-
-                const auto header_ret = map::read_lotheader(entry_path);
-                if (!header_ret) {
-                    spdlog::error("Failed to read lotheader file {}", entry_path.string());
-                    return 1;
-                }
-
-                const auto lotpack_file = entry_path.parent_path() / std::format("world_{}_{}.lotpack", cell_x, cell_y);
-                const auto pack_ret = map::read_lotpack(lotpack_file);
-                if (!pack_ret) {
-                    spdlog::error("Failed to read lotpack file {}", lotpack_file.string());
-                    return 1;
-                }
-
-                map::_index++;
+            pz::map pzmap{};
+            if (!pzmap.read(map_path)) {
+                spdlog::error("Failed to read map from {}", map_path.string());
+                return 1;
             }
 
             const auto pzw_path = out_path / (map_name + ".pzw");

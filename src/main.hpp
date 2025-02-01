@@ -17,4 +17,7 @@ namespace fs = std::filesystem;
 #define CHUNK_MAXLEVELS 16
 #define CHUNKGRID_WIDTH 30
 
+inline fs::path in_dir;
+inline fs::path out_dir;
+
 #endif //MAIN_HPP

@@ -11,6 +11,133 @@
 #define STREAM_READ(stream, out) stream.read(reinterpret_cast<char *>(&out), sizeof(out))
 #define STREAM_READSZ(stream, out, size) stream.read(reinterpret_cast<char *>(&out), size)
 
+namespace pz {
+    bool map::read(const fs::path &in) {
+        // Do a single pass, getting the last lotheader file to determine the
+        // map's width and height in cells.
+        for (const auto &entry: fs::directory_iterator(in)) {}
+
+
+        for (const auto &entry: fs::directory_iterator(in)) {
+            if (!entry.is_regular_file()) continue;
+
+            const auto &entry_path = entry.path();
+            // We only need to loop through the lotheader files, because we can infer the
+            // other file names from just the cellX and cellY of the filename.
+            if (entry_path.extension() != ".lotheader") continue;
+
+            const auto &entry_stem = entry_path.stem().string();
+            const auto p = entry_stem.find_first_of('_');
+            const auto cell_x = std::stoul(entry_stem.substr(0, p));
+            const auto cell_y = std::stoul(entry_stem.substr(p + 1));
+
+            const auto rel_path = relative(entry_path, in_dir);
+            spdlog::debug("Found map cell {}", rel_path.string());
+
+            const auto header_ret = read_lotheader(entry_path);
+            if (!header_ret) {
+                spdlog::error("Failed to read lotheader file {}", entry_path.string());
+                return false;
+            }
+
+            const auto lotpack_file = entry_path.parent_path() / std::format(
+                                          "world_{}_{}.lotpack", cell_x, cell_y);
+            const auto pack_ret = read_lotpack(lotpack_file);
+            if (!pack_ret) {
+                spdlog::error("Failed to read lotpack file {}", lotpack_file.string());
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool map::read_lotheader(const fs::path &in, const uint32_t wx, const uint32_t wy) {
+        std::ifstream stream(in, std::ios::binary);
+        if (!stream.is_open() || !stream.good()) {
+            spdlog::error("Failed to open file {}", in.string());
+            return false;
+        }
+
+        // We return this later.
+        auto header = lotheader();
+
+        STREAM_READ(stream, header.version);
+        STREAM_READ(stream, header.tile_count);
+        for (uint32_t i = 0; i < header.tile_count; ++i) {
+            std::string name;
+            getline(stream, name);
+            header.tiles.emplace_back(name);
+        }
+        // Skip 0x00 byte because it's always 0x00 and not used.
+        stream.seekg(1, std::ios::cur);
+        STREAM_READ(stream, header.width);
+        STREAM_READ(stream, header.height);
+        STREAM_READ(stream, header.levels);
+        STREAM_READ(stream, header.room_count);
+        for (uint32_t i = 0; i < header.room_count; ++i) {
+            auto rdef = roomdef();
+            std::string name;
+            getline(stream, name);
+            rdef.name = name;
+            STREAM_READ(stream, rdef.level);
+            STREAM_READ(stream, rdef.roomrect_count);
+            for (uint32_t j = 0; j < rdef.roomrect_count; ++j) {
+                auto rrect = roomrect();
+                STREAM_READ(stream, rrect.x);
+                STREAM_READ(stream, rrect.y);
+                STREAM_READ(stream, rrect.width);
+                STREAM_READ(stream, rrect.height);
+                rrect.x += wx * CELL_WIDTH;
+                rrect.y += wy * CELL_HEIGHT;
+                rdef.roomrects.emplace_back(rrect);
+            }
+            header.rooms.emplace_back(rdef);
+
+            STREAM_READ(stream, rdef.objects_count);
+            // TODO: Are metaobjects unused?
+            for (uint32_t j = 0; j < rdef.objects_count; ++j) {
+                auto metaobj = metaobject();
+                STREAM_READ(stream, metaobj.type);
+                STREAM_READ(stream, metaobj.x);
+                STREAM_READ(stream, metaobj.y);
+                // metaobj.x += _worldx * CELL_WIDTH - rdef.x;
+                // metaobj.y += _worldx * CELL_WIDTH - rdef.y;
+            }
+        }
+
+        STREAM_READ(stream, header.building_count);
+        for (uint32_t i = 0; i < header.building_count; ++i) {
+            auto bdef = buildingdef();
+            STREAM_READ(stream, bdef.room_count);
+
+            // Some weird cyclic shit, black magic really.
+            for (uint32_t j = 0; j < bdef.room_count; ++j) {
+                uint32_t room_id;
+                STREAM_READ(stream, room_id);
+                auto rdef = header.rooms[room_id];
+                rdef.building = bdef;
+                bdef.rooms.emplace_back(rdef);
+            }
+
+            header.buildings.emplace_back(bdef);
+        }
+
+        // Read the zombie intensity into a 30x30 matrix.
+        // TODO: Maps can have intensity matrixes larger than 900x900.
+        for (int x = 0; x < CHUNKGRID_WIDTH; x++) {
+            for (int y = 0; y < CHUNKGRID_WIDTH; y++) {
+                STREAM_READSZ(stream, header.intensity[x * CHUNKGRID_WIDTH + y], sizeof(uint32_t));
+            }
+        }
+
+        stream.close();
+        lotheaders.emplace_back(header);
+        return true;
+    }
+}
+
+
 namespace map {
     bool write_pzw(const fs::path &out) {
         create_directories(out.parent_path());
@@ -100,90 +227,6 @@ namespace map {
 
         stream.close();
         _lotpacks.emplace_back(pack);
-        return true;
-    }
-
-
-    bool read_lotheader(const fs::path &in) {
-        std::ifstream stream(in, std::ios::binary);
-        if (!stream.is_open() || !stream.good()) {
-            spdlog::error("Failed to open file {}", in.string());
-            return false;
-        }
-
-        // We return this later.
-        auto header = lotheader();
-
-        STREAM_READ(stream, header.version);
-        STREAM_READ(stream, header.tile_count);
-        for (uint32_t i = 0; i < header.tile_count; ++i) {
-            std::string name;
-            getline(stream, name);
-            header.tiles.emplace_back(name);
-        }
-        // Skip 0x00 byte because it's always 0x00 and not used.
-        stream.seekg(1, std::ios::cur);
-        STREAM_READ(stream, header.width);
-        STREAM_READ(stream, header.height);
-        STREAM_READ(stream, header.levels);
-        STREAM_READ(stream, header.room_count);
-        for (uint32_t i = 0; i < header.room_count; ++i) {
-            auto rdef = roomdef();
-            std::string name;
-            getline(stream, name);
-            rdef.name = name;
-            STREAM_READ(stream, rdef.level);
-            STREAM_READ(stream, rdef.roomrect_count);
-            for (uint32_t j = 0; j < rdef.roomrect_count; ++j) {
-                auto rrect = roomrect();
-                STREAM_READ(stream, rrect.x);
-                STREAM_READ(stream, rrect.y);
-                STREAM_READ(stream, rrect.width);
-                STREAM_READ(stream, rrect.height);
-                rrect.x += _worldx * CELL_WIDTH;
-                rrect.y += _worldy * CELL_HEIGHT;
-                rdef.roomrects.emplace_back(rrect);
-            }
-            header.rooms.emplace_back(rdef);
-
-            STREAM_READ(stream, rdef.objects_count);
-            // TODO: Are metaobjects unused?
-            for (uint32_t j = 0; j < rdef.objects_count; ++j) {
-                auto metaobj = metaobject();
-                STREAM_READ(stream, metaobj.type);
-                STREAM_READ(stream, metaobj.x);
-                STREAM_READ(stream, metaobj.y);
-                // metaobj.x += _worldx * CELL_WIDTH - rdef.x;
-                // metaobj.y += _worldx * CELL_WIDTH - rdef.y;
-            }
-        }
-
-        STREAM_READ(stream, header.building_count);
-        for (uint32_t i = 0; i < header.building_count; ++i) {
-            auto bdef = buildingdef();
-            STREAM_READ(stream, bdef.room_count);
-
-            // Some weird cyclic shit, black magic really.
-            for (uint32_t j = 0; j < bdef.room_count; ++j) {
-                uint32_t room_id;
-                STREAM_READ(stream, room_id);
-                auto rdef = header.rooms[room_id];
-                rdef.building = bdef;
-                bdef.rooms.emplace_back(rdef);
-            }
-
-            header.buildings.emplace_back(bdef);
-        }
-
-        // Read the zombie intensity into a 30x30 matrix.
-        for (int x = 0; x < CHUNKGRID_WIDTH; x++) {
-            for (int y = 0; y < CHUNKGRID_WIDTH; y++) {
-                STREAM_READSZ(stream, header.intensity[x * CHUNKGRID_WIDTH + y], sizeof(uint32_t));
-            }
-        }
-
-        stream.close();
-        _lotheaders.emplace_back(header);
         return true;
     }
 }

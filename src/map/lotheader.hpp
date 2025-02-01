@@ -8,7 +8,8 @@
 #include "roomdef.hpp"
 
 //! Used by Project Zomboid in exported maps via the .lotheader file.
-struct lotheader {
+class lotheader {
+public:
     //! Lotheader version. Always 0 since <=41.78.16.
     uint32_t version;
     //! Number of tilesheets used by this lot.
