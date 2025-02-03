@@ -7,8 +7,14 @@
 #include "roomdef.hpp"
 
 namespace pz {
-    //! TODO: Document
-    struct buildingdef {
+    class buildingdef {
+        buildingdef();
+
+        uint32_t width;
+
+        uint32_t height;
+
+    public:
         uint32_t room_count;
 
         std::vector<roomdef> rooms{};

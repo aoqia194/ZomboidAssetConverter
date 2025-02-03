@@ -1,3 +1,5 @@
-//
-// Created by aoqia on 2025-02-03.
-//
+#include "buildingdef.hpp"
+
+pz::buildingdef::buildingdef() {
+
+}

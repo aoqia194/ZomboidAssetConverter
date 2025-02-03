@@ -1,6 +1,6 @@
 #include "pzw.hpp"
 
-namespace pzw {
+namespace pz::pzw {
     [[maybe_unused]]
     pugi::xml_node objectgroup_node(pugi::xml_node &parent,
                                     const std::string &name,
@@ -10,6 +10,17 @@ namespace pzw {
         obj.append_attribute("name") = name;
         obj.append_attribute("color") = colour;
         obj.append_attribute("defaulttype") = default_value;
+        return obj;
+    }
+
+    [[maybe_unused]]
+    pugi::xml_node objectgroup_node(pugi::xml_node &parent,
+                                    const std::string &name,
+                                    const std::string &colour) {
+        auto obj = parent.append_child("objectgroup");
+        obj.append_attribute("name") = name;
+        obj.append_attribute("color") = colour;
+        obj.append_attribute("defaulttype") = name;
         return obj;
     }
 
@@ -28,8 +39,18 @@ namespace pzw {
         auto obj = parent.append_child("propertydef");
         obj.append_attribute("name") = name;
         obj.append_attribute("default") = default_value;
-        if (!enum_value.empty()) obj.append_attribute("enum") = enum_value;
-        else if (enum_value == "!") obj.append_attribute("enum") = name;
+        if (enum_value == "!") obj.append_attribute("enum") = name;
+        else if (!enum_value.empty()) obj.append_attribute("enum") = enum_value;
+        return obj;
+    }
+
+    [[maybe_unused]]
+    pugi::xml_node propertydef_node(pugi::xml_node &parent,
+                                    const std::string &name,
+                                    const std::string &default_value) {
+        auto obj = parent.append_child("propertydef");
+        obj.append_attribute("name") = name;
+        obj.append_attribute("default") = default_value;
         return obj;
     }
 
@@ -37,7 +58,7 @@ namespace pzw {
     pugi::xml_node propertyenum_node(pugi::xml_node &parent,
                                      const std::string &name,
                                      const std::string &choices,
-                                     const bool multi) {
+                                     const bool multi = false) {
         auto obj = parent.append_child("propertyenum");
         obj.append_attribute("name") = name;
         obj.append_attribute("choices") = choices;

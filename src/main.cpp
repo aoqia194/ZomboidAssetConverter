@@ -85,8 +85,8 @@ int main(const int argc, const char **argv) {
         for (const auto &entry: fs::recursive_directory_iterator(in)) {
             if (!entry.is_regular_file()) continue;
             const auto &entry_path = entry.path();
-            const auto out_path = (out_assets_dir / relative(entry_path, in)).
-                replace_extension("gltf");
+            const auto out_path = (out_assets_dir / relative(entry_path, in))
+                .replace_extension("gltf");
 
             if (!asset::load(entry_path) || !asset::dump("gltf2", out_path)) {
                 spdlog::error("Failed to dump all assets. Stopped to prevent issues.");
@@ -102,8 +102,8 @@ int main(const int argc, const char **argv) {
 
         for (const auto &map: fs::directory_iterator(in_dir)) {
             if (!map.is_directory()) continue;
-            const auto &map_path = map.path();
-            const auto &map_name = map_path.stem().string();
+            const auto map_path = map.path();
+            const auto map_name = map_path.stem().string();
             const auto out_path = out_maps_dir / relative(map, in_dir);
             spdlog::trace("dir {}", map.path().string());
 
@@ -114,8 +114,7 @@ int main(const int argc, const char **argv) {
             }
 
             const auto pzw_path = out_path / (map_name + ".pzw");
-            const auto pzw_ret = map::write_pzw(pzw_path);
-            if (!pzw_ret) {
+            if (!pzmap.write(pzw_path)) {
                 spdlog::error("Failed to write PZW map file {}", pzw_path.string());
                 return 1;
             }

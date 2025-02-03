@@ -6,8 +6,6 @@
 
 #include <filesystem>
 
-#include "spdlog\logger.h"
-
 namespace fs = std::filesystem;
 
 #define CELL_WIDTH 300
@@ -15,7 +13,7 @@ namespace fs = std::filesystem;
 #define CHUNK_WIDTH 10
 #define CHUNK_HEIGHT 10
 #define CHUNK_MAXLEVELS 16
-#define CHUNKGRID_WIDTH 30
+#define CHUNKGRID_SIZE 30
 
 inline fs::path in_dir;
 inline fs::path out_dir;

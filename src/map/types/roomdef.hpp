@@ -8,7 +8,7 @@
 #include "roomrect.hpp"
 
 namespace pz {
-    struct buildingdef;
+    class buildingdef;
 
     //! TODO: Document
     struct roomdef {
