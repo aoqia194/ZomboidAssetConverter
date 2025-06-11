@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.30)
 
 project(ZomboidAssetConverter LANGUAGES CXX VERSION "0.0.1")
 

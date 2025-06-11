@@ -3,12 +3,12 @@
 #include "asset.h"
 #include "cxxopts.hpp"
 
-#include "assimp\DefaultLogger.hpp"
-#include "assimp\Logger.hpp"
+#include "assimp/DefaultLogger.hpp"
+#include "assimp/Logger.hpp"
 
-#include "spdlog\spdlog.h"
-#include "spdlog\stopwatch.h"
-#include "spdlog\sinks\stdout_color_sinks.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/stopwatch.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 int main(const int argc, const char **argv) {
     set_default_logger(spdlog::stdout_color_mt(PROJECT_NAME));
@@ -21,7 +21,7 @@ int main(const int argc, const char **argv) {
     options.add_options()
         ("v,verbose", "Enable verbose log output")
         ("h,help", "Print program usage")
-        ("i,input", "Path to input directory", cxxopts::value<std::string>())
+        ("i,input", "Path to input directory", cxxopts::value<std::string>()->default_value(""))
         ("o,output", "(optional) Path to output directory", cxxopts::value<std::string>()->default_value(""));
     options.add_options("assets")
         ("f,fix-assets", "Fix input asset files")
@@ -39,13 +39,35 @@ int main(const int argc, const char **argv) {
         SPDLOG_INFO(options.help());
         return 0;
     }
+
+    if (result["input"].as<std::string>().empty()) {
+        SPDLOG_ERROR("No input directory specified!  Please pass the directory containing your .x files as the last parameter");
+        SPDLOG_INFO(options.help());
+        return 1;
+    }
+
+    if (!result["fix-assets"].as<bool>() && !result["convert-assets"].as<bool>()) {
+        SPDLOG_ERROR("No action requested!  Please include -a and/or -f");
+        SPDLOG_INFO(options.help());
+        return 1;
+    }
+
+    //const std::string input = "";
+    //const std::string output = "";
     const auto input = result["input"].as<std::string>();
     const auto output = result["output"].as<std::string>();
 
     // yummyyy
     const fs::path exe_dir = fs::path(argv[0]).parent_path();
-    const fs::path in_dir = !input.empty() ? input : exe_dir / "in" / "assets";
-    const fs::path out_dir = !output.empty() ? output : exe_dir / "out";
+    fs::path out_dir = exe_dir / "out";
+    const fs::path in_dir = std::filesystem::u8path(input);
+
+    if (!output.empty()) {
+        out_dir = std::filesystem::u8path(output);
+    }
+
+    SPDLOG_INFO("Looking for assets in {}", in_dir.c_str());
+
     const fs::path out_fixed_dir = out_dir / "fixed";
     const fs::path out_assets_dir = out_dir / "assets";
 
