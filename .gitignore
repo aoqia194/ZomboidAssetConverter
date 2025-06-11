@@ -111,3 +111,26 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+# Compiled binary directory
+bin
+
+# CMake dynamic goodies
+CMakeFiles
+**/CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+.cmake
+
+# vcpkg files
+vcpkg-manifest-install.log
+vcpkg_installed
+packages
+
+# Not sure where this came from, but something from Clion
+Testing
+
+# Ninja
+.ninja_deps
+.ninja_log
+build.ninja
