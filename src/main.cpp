@@ -15,15 +15,21 @@ int main(const int argc, const char **argv) {
     spdlog::enable_backtrace(5);
     spdlog::set_level(spdlog::level::info);
 
-    // Handle program args.
+    // Set the executable path directory; used to provide default locations for saving assets
+    const fs::path exe_dir = fs::path(argv[0]).parent_path();
 
+    // Handle program args.
     cxxopts::Options options(PROJECT_NAME, PROJECT_DESC);
     options.add_options()
         ("v,verbose", "Enable verbose log output")
-        ("h,help", "Print program usage")
-        ("i,input", "Path to input directory", cxxopts::value<std::string>()->default_value(""))
-        ("o,output", "(optional) Path to output directory", cxxopts::value<std::string>()->default_value(""));
+        ("h,help", "Print program usage");
     options.add_options("assets")
+        ("i,input", "Path to input directory", cxxopts::value<std::string>())
+        (
+            "o,output",
+            "(optional) Path to output directory",
+            cxxopts::value<std::string>()->default_value((exe_dir / "out").c_str())
+        )
         ("f,fix-assets", "Fix input asset files")
         ("a,convert-assets", "Convert assets");
     options.add_options("maps")
@@ -40,31 +46,22 @@ int main(const int argc, const char **argv) {
         return 0;
     }
 
-    if (result["input"].as<std::string>().empty()) {
-        SPDLOG_ERROR("No input directory specified!  Please pass the directory containing your .x files as the last parameter");
+    if (result.count("input") == 0) {
+        SPDLOG_WARN("No input directory specified!  Please pass in the directory containing your .x files.");
         SPDLOG_INFO(options.help());
         return 1;
     }
 
     if (!result["fix-assets"].as<bool>() && !result["convert-assets"].as<bool>()) {
-        SPDLOG_ERROR("No action requested!  Please include -a and/or -f");
+        SPDLOG_WARN("No action requested!  Please include -a and/or -f");
         SPDLOG_INFO(options.help());
         return 1;
     }
 
-    //const std::string input = "";
-    //const std::string output = "";
-    const auto input = result["input"].as<std::string>();
-    const auto output = result["output"].as<std::string>();
-
     // yummyyy
-    const fs::path exe_dir = fs::path(argv[0]).parent_path();
-    fs::path out_dir = exe_dir / "out";
-    const fs::path in_dir = std::filesystem::u8path(input);
+    const fs::path in_dir = std::filesystem::u8path(result["input"].as<std::string>());
+    const fs::path out_dir = std::filesystem::u8path(result["output"].as<std::string>());
 
-    if (!output.empty()) {
-        out_dir = std::filesystem::u8path(output);
-    }
 
     SPDLOG_INFO("Looking for assets in {}", in_dir.c_str());
 
