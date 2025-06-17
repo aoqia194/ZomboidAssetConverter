@@ -3,12 +3,12 @@
 #include <fstream>
 #include <regex>
 
-#include "assimp\Exporter.hpp"
-#include "assimp\Importer.hpp"
-#include "assimp\postprocess.h"
-#include "assimp\scene.h"
+#include "assimp/Exporter.hpp"
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
 
-#include "spdlog\spdlog.h"
+#include "spdlog/spdlog.h"
 
 namespace asset {
     const std::regex BROKEN_XANIM_REGEX(R"(^\s*;)");
