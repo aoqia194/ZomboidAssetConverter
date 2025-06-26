@@ -30,10 +30,8 @@ int main(const int argc, const char** argv) {
             "o,output", "(optional) Path to output directory",
             cxxopts::value<std::string>()->default_value((exe_dir / "out").string())
         )
-        ("f,fix-assets", "Fix input asset files")
-        ("a,convert-assets", "Convert assets");
-    options.add_options("map")
-        ("m,convert-maps", "Convert maps");
+        ("a,fix-assets", "Fix input asset files")
+        ("A,convert-assets", "Convert assets");
     options.parse_positional({ "input" });
     const auto result = options.parse(argc, argv);
 
