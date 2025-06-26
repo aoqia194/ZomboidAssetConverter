@@ -10,6 +10,6 @@
     "version>=" : "1.15.0#1"
   }, {
     "name" : "assimp",
-    "version>=" : "6.0.1"
+    "version>=" : "6.0.2"
   } ]
 }
