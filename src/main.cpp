@@ -68,13 +68,19 @@ int main(const int argc, const char** argv) {
     // Fix the assets if needed.
     if (result["fix-assets"].as<bool>()) {
         spdlog::stopwatch sw;
-        for (const auto& entry: fs::recursive_directory_iterator(in_dir)) {
+
+        for (const auto& entry : fs::recursive_directory_iterator(in_dir)) {
+            const auto& entry_path = entry.path();
             spdlog::trace("Recursing and fixing through directory {}", entry_path.string());
 
-            if (!entry.is_regular_file()) continue;
-            const auto& entry_path = entry.path();
-            const auto out = out_fixed_dir / fs::relative(entry_path, in_dir);
+            const auto& entry_ext = entry_path.extension().string();
+            const auto& parent_stem = entry_path.parent_path().stem();
 
+            if (!entry.is_regular_file()) continue;
+            if (parent_stem == "fixed" || parent_stem == "assets") continue;
+            if (entry_ext != ".X" && entry_ext != ".x") continue;
+
+            const auto out = out_fixed_dir / fs::relative(entry_path, in_dir);
             if (!asset::fix(entry_path, out)) {
                 spdlog::error("Failed to fix all assets. Stopped to prevent issues.");
                 spdlog::dump_backtrace();
@@ -87,6 +93,12 @@ int main(const int argc, const char** argv) {
     // Convert the assets if needed.
     if (result["convert-assets"].as<bool>()) {
         const auto in = result["fix-assets"].as<bool>() ? out_fixed_dir : in_dir;
+        if (in == out_fixed_dir && !exists(out_fixed_dir)) {
+            spdlog::error("Fix assets was enabled but there are no fixed assets.");
+            spdlog::error("Exiting to prevent undefined behaviour.");
+
+            return 1;
+        }
 
         spdlog::stopwatch sw;
         for (const auto& entry: fs::recursive_directory_iterator(in)) {
@@ -94,8 +106,12 @@ int main(const int argc, const char** argv) {
             spdlog::trace("Recursing and fixing through directory {}", entry_path.string());
 
             const auto& entry_ext = entry_path.extension().string();
+            const auto& parent_stem = entry_path.parent_path().stem();
+
             if (!entry.is_regular_file()) continue;
-            if (entry_ext != ".X" || entry_ext != ".x") continue;
+            if (parent_stem == "fixed" || parent_stem == "assets") continue;
+            if (entry_ext != ".X" && entry_ext != ".x") continue;
+
             const auto out_path = (out_assets_dir / fs::relative(entry_path, in))
                 .replace_extension("gltf");
 
