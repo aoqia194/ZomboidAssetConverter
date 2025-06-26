@@ -11,7 +11,7 @@
 #include "spdlog/spdlog.h"
 
 namespace asset {
-    const std::regex BROKEN_XANIM_REGEX(R"(^\s*;)");
+    const std::regex BROKEN_XANIM_REGEX(R"(^\\s*;)");
 
     const auto _importer = std::make_shared<Assimp::Importer>();
     const auto _exporter = std::make_shared<Assimp::Exporter>();
@@ -20,9 +20,10 @@ namespace asset {
         create_directories(out.parent_path());
 
         SPDLOG_DEBUG("Exporting asset scene to {}", out.string());
-        const auto res = _exporter->Export(*_scene, format, out.string(), aiProcess_ValidateDataStructure);
+        const auto res = _exporter->Export(*_scene, format, out.string(),
+                                           aiProcess_ValidateDataStructure);
         if (res != AI_SUCCESS) {
-            spdlog::error("❌ Failed to export scene: {}", _exporter->GetErrorString());
+            spdlog::error("Failed to export scene: {}", _exporter->GetErrorString());
         }
         SPDLOG_INFO("Saved exported file at {}", out.string());
 
@@ -53,6 +54,7 @@ namespace asset {
             aiProcess_SortByPType));
         if (_scene == nullptr || (*_scene)->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
             SPDLOG_ERROR("Failed to load asset at {}: {}", path_str, _importer->GetErrorString());
+            spdlog::dump_backtrace();
             return false;
         }
 
@@ -62,40 +64,48 @@ namespace asset {
     bool fix(const fs::path &in, const fs::path &out) {
         if (!exists(in)) {
             SPDLOG_ERROR("Asset {} does not exist", in.string());
+            spdlog::dump_backtrace();
             return false;
         }
-
-        auto infile = std::ifstream(in);
-        if (!infile.is_open()) {
-            SPDLOG_ERROR("Could not open asset {}", in.string());
-            return false;
-        }
-
-        std::stringstream buf;
-        std::string line;
-        std::smatch m;
-
-        int i = 0;
-        while (getline(infile, line)) {
-            if (std::regex_match(line, m, BROKEN_XANIM_REGEX)) {
-                SPDLOG_DEBUG("Found bugged DirectX format at line {}.", i);
-            } else {
-                buf << line + "\n";
-            }
-
-            i++;
-        }
-        infile.close();
 
         create_directories(out.parent_path());
 
-        auto outfile = std::ofstream(out);
-        if (!outfile.is_open()) {
-            SPDLOG_ERROR("Could not open output file {}", out.string());
+        auto infile = std::ifstream(in, std::ios::binary);
+        if (!infile.is_open()) {
+            SPDLOG_ERROR("Could not open asset {}", in.string());
+            spdlog::dump_backtrace();
             return false;
         }
 
-        outfile << buf.str();
+        auto outfile = std::ofstream(out, std::ios::binary);
+        if (!outfile.is_open()) {
+            SPDLOG_ERROR("Could not open output file {}", out.string());
+            spdlog::dump_backtrace();
+            return false;
+        }
+
+        std::string line;
+
+        // Skip fixing if DirectX format is binary.
+        std::getline(infile, line);
+        outfile << line << std::endl;
+        if (line.substr(8, 3) == "bin") {
+            SPDLOG_DEBUG("DirectX file was binary format, no need to fix.");
+            outfile << infile.rdbuf();
+        } else {
+            int i = 0;
+            while (std::getline(infile, line)) {
+                if (std::regex_match(line, BROKEN_XANIM_REGEX)) {
+                    SPDLOG_DEBUG("Found bugged DirectX format at line {}.", i);
+                } else {
+                    outfile << line << std::endl;
+                }
+
+                i++;
+            }
+        }
+
+        infile.close();
         outfile.close();
 
         SPDLOG_INFO("Saved fixed file at {}", out.string());
