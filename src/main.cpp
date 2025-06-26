@@ -1,6 +1,6 @@
-#include "main.h"
+#include "main.hpp"
 
-#include "asset.h"
+#include "asset.hpp"
 #include "cxxopts.hpp"
 
 #include "assimp/DefaultLogger.hpp"

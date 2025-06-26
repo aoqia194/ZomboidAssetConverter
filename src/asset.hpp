@@ -1,7 +1,7 @@
-#ifndef ASSET_H
-#define ASSET_H
+#ifndef ASSET_HPP
+#define ASSET_HPP
 
-#include "main.h"
+#include "main.hpp"
 
 #include "assimp/scene.h"
 
@@ -32,4 +32,4 @@ namespace asset {
     bool fix(const fs::path &in, const fs::path &out);
 }
 
-#endif //ASSET_H
+#endif //ASSET_HPP
