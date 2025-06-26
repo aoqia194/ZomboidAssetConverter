@@ -56,25 +56,24 @@ int main(const int argc, const char** argv) {
     spdlog::info("Looking for assets in {}", in_dir.string());
 
     const auto out_fixed_dir = out_dir / "fixed";
-    if (fs::exists(out_fixed_dir) && !out_fixed_dir.empty()) {
-        spdlog::warn("Found non-empty fixed directory. Potential for recursive conversion.");
-    }
-
     const auto out_assets_dir = out_dir / "assets";
-    if (fs::exists(out_assets_dir) && !out_assets_dir.empty()) {
-        spdlog::warn("Found non-empty fixed directory. Potential for recursive conversion.");
-    }
 
     // Fix the assets if needed.
     if (result["fix-assets"].as<bool>()) {
         spdlog::stopwatch sw;
 
+        // Remove previously fixed files if they exist.
+        if (fs::exists(out_fixed_dir)) {
+            spdlog::info("Found previously fixed files. Deleting the fixed folder.");
+            fs::remove_all(out_fixed_dir);
+        }
+
         for (const auto& entry : fs::recursive_directory_iterator(in_dir)) {
             const auto& entry_path = entry.path();
-            spdlog::trace("Recursing and fixing through directory {}", entry_path.string());
-
             const auto& entry_ext = entry_path.extension().string();
             const auto& parent_stem = entry_path.parent_path().stem();
+
+            spdlog::trace("Recursing and fixing: {}", entry_path.string());
 
             if (!entry.is_regular_file()) continue;
             if (parent_stem == "fixed" || parent_stem == "assets") continue;
@@ -100,16 +99,19 @@ int main(const int argc, const char** argv) {
             return 1;
         }
 
+        // Remove previously converted files if they exist.
+        if (fs::exists(out_assets_dir)) {
+            spdlog::info("Found previously converted files. Deleting the assets folder.");
+            fs::remove_all(out_assets_dir);
+        }
+
         spdlog::stopwatch sw;
         for (const auto& entry: fs::recursive_directory_iterator(in)) {
             const auto& entry_path = entry.path();
-            spdlog::trace("Recursing and fixing through directory {}", entry_path.string());
-
             const auto& entry_ext = entry_path.extension().string();
-            const auto& parent_stem = entry_path.parent_path().stem();
+            spdlog::trace("Recursing and converting: {}", entry_path.string());
 
             if (!entry.is_regular_file()) continue;
-            if (parent_stem == "fixed" || parent_stem == "assets") continue;
             if (entry_ext != ".X" && entry_ext != ".x") continue;
 
             const auto out_path = (out_assets_dir / fs::relative(entry_path, in))
