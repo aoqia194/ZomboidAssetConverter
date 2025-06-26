@@ -22,8 +22,8 @@ namespace asset {
         SPDLOG_DEBUG("Exporting asset scene to {}", out.string());
         const auto res = _exporter->Export(*_scene, format, out.string(),
                                            aiProcess_ValidateDataStructure);
-        if (res != AI_SUCCESS) {
-            spdlog::error("Failed to export scene: {}", _exporter->GetErrorString());
+        if (res != aiReturn_SUCCESS) {
+            SPDLOG_ERROR("Failed to export scene: {}", _exporter->GetErrorString());
         }
         SPDLOG_INFO("Saved exported file at {}", out.string());
 
@@ -32,7 +32,7 @@ namespace asset {
         SPDLOG_DEBUG("Resetting assimp scene.");
         _scene.reset();
 
-        return res == AI_SUCCESS;
+        return res == aiReturn_SUCCESS;
     }
 
     bool load(const fs::path &in) {
