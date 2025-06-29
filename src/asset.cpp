@@ -11,7 +11,7 @@
 #include "spdlog/spdlog.h"
 
 namespace asset {
-    const std::regex BROKEN_XANIM_REGEX(R"(^\\s*;)");
+    const std::regex BROKEN_XANIM_REGEX(R"(^\s*;\s*$)");
 
     const auto _importer = std::make_shared<Assimp::Importer>();
     const auto _exporter = std::make_shared<Assimp::Exporter>();
@@ -31,6 +31,7 @@ namespace asset {
         // But we do because idk why the smart pointer isn't resetting automatically.
         spdlog::debug("Resetting assimp scene.");
         _scene.reset();
+        _importer->FreeScene();
 
         return res == aiReturn_SUCCESS;
     }
@@ -48,11 +49,13 @@ namespace asset {
             spdlog::warn("Previously loaded scene found. It WILL get discarded!");
         }
 
-        _scene = std::make_shared<const aiScene *>(_importer->ReadFile(
-            path_str,
+        _scene = std::make_shared<const aiScene*>(_importer->ReadFile(
+            path_str.c_str(),
             aiProcess_ValidateDataStructure | aiProcess_FindInvalidData | aiProcess_GlobalScale |
             aiProcess_SortByPType));
-        if (_scene == nullptr || (*_scene)->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+        if (_scene == nullptr || *_scene == nullptr
+            || strlen(_importer->GetErrorString()) != 0
+            || (*_scene)->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
             spdlog::error("Failed to load asset at {}: {}", path_str, _importer->GetErrorString());
             spdlog::dump_backtrace();
             return false;
