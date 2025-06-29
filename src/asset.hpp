@@ -6,7 +6,7 @@
 #include "assimp/scene.h"
 
 namespace asset {
-    inline std::shared_ptr<const aiScene *> _scene;
+    inline std::shared_ptr<const aiScene*> _scene;
 
     /**
      * Dumps the loaded scene to a file.
