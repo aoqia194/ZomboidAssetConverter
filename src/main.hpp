@@ -2,9 +2,14 @@
 #define MAIN_HPP
 
 #define PROJECT_NAME "ZomboidAssetConverter"
-#define PROJECT_DESC "Imports, optionally fixes, and exports Zomboid .X files. Imports and exports Zomboid maps."
+#define PROJECT_DESC \
+    "Imports, optionally fixes, and exports Zomboid .X files. Imports and exports Zomboid maps."
+
+#define LOGGER_PATTERN "[%Y-%m-%d %H:%M:%S] [%^%l%$] %v"
 
 #include <filesystem>
+
+#include "spdlog/logger.h"
 
 namespace fs = std::filesystem;
 
@@ -14,8 +19,5 @@ namespace fs = std::filesystem;
 #define CHUNK_HEIGHT 10
 #define CHUNK_MAXLEVELS 16
 #define CHUNKGRID_SIZE 30
-
-inline fs::path in_dir;
-inline fs::path out_dir;
 
 #endif //MAIN_HPP

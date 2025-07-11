@@ -11,11 +11,11 @@ A cli program to convert between certain data formats that are used by the game 
 Viewing all of the options you can use:
 
 ```sh
-./ZomboidAssetExtractor --help
+./ZomboidAssetConverter --help
 ```
 
 To convert a folder of DirectX files:
 
 ```sh
-./ZomboidAssetExtractor "C:\dev\zomboid_assets\anims_X" --output "C:\dev\zomboid_assets\anims_X_converted" --fix-assets --convert-assets
+./ZomboidAssetConverter "C:\dev\zomboid_assets\anims_X" --output "C:\dev\zomboid_assets\anims_X_converted" --fix-assets --convert-assets
 ```

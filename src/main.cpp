@@ -4,30 +4,35 @@
 #include "cxxopts.hpp"
 #include "map.hpp"
 
-#include "assimp\DefaultLogger.hpp"
-#include "assimp\Logger.hpp"
+#include "assimp/DefaultLogger.hpp"
+#include "assimp/Logger.hpp"
 
-#include "spdlog\spdlog.h"
-#include "spdlog\stopwatch.h"
-#include "spdlog\sinks\stdout_color_sinks.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/stopwatch.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
-int main(const int argc, const char **argv) {
+int main(const int argc, const char** argv) {
     set_default_logger(spdlog::stdout_color_mt(PROJECT_NAME));
+    spdlog::set_pattern(LOGGER_PATTERN);
     spdlog::enable_backtrace(5);
     spdlog::set_level(spdlog::level::info);
 
-    // Handle program args.
+    // Set the executable path directory; used to provide default locations for saving assets
+    const fs::path exe_dir = fs::path(argv[0]).parent_path();
 
+    // Handle program args.
     cxxopts::Options options(PROJECT_NAME, PROJECT_DESC);
     options.add_options()
         ("v,verbose", "Enable verbose log output")
-        ("h,help", "Print program usage")
+        ("h,help", "Print program usage");
+    options.add_options("asset")
         ("i,input", "Path to input directory", cxxopts::value<std::string>())
-        ("o,output", "(optional) Path to output directory",
-         cxxopts::value<std::string>()->default_value(""));
-    options.add_options("assets")
-        ("f,fix-assets", "Fix input asset files")
-        ("a,convert-assets", "Convert assets");
+        (
+            "o,output", "(optional) Path to output directory",
+            cxxopts::value<std::string>()->default_value((exe_dir / "out").string())
+        )
+        ("a,fix-assets", "Fix input asset files")
+        ("A,convert-assets", "Convert assets");
     options.add_options("maps")
         ("m,convert-maps", "Convert maps");
     options.parse_positional({ "input" });
@@ -35,6 +40,7 @@ int main(const int argc, const char **argv) {
 
     if (result["verbose"].as<bool>()) {
         spdlog::set_level(spdlog::level::trace);
+        spdlog::disable_backtrace();
         Assimp::DefaultLogger::create("assimp.log", Assimp::Logger::VERBOSE);
     }
 
@@ -42,58 +48,86 @@ int main(const int argc, const char **argv) {
         spdlog::info(options.help());
         return 0;
     }
-    const auto input = result["input"].as<std::string>();
-    const auto output = result["output"].as<std::string>();
-    const auto fix_assets = result["fix-assets"].as<bool>();
-    const auto convert_assets = result["convert-assets"].as<bool>();
-    const auto convert_maps = result["convert-maps"].as<bool>();
 
-    // yummyyy
-    const fs::path exe_dir = fs::path(argv[0]).parent_path();
-    in_dir = !input.empty() ? input : exe_dir / "in";
-    out_dir = !output.empty() ? output : exe_dir / "out";
-    const fs::path out_fixed_dir = out_dir / "fixed";
-    const fs::path out_assets_dir = out_dir / "assets";
-    const fs::path out_maps_dir = out_dir / "maps";
-
-    if ((fix_assets || convert_assets) && convert_maps) {
-        spdlog::error("Cannot fix/convert assets at the same time as converting maps.");
+    if (result.count("input") == 0) {
+        spdlog::info(options.help());
         return 1;
     }
+
+    const auto in_dir = fs::path(result["input"].as<std::string>());
+    const auto out_dir = fs::path(result["output"].as<std::string>());
+
+    spdlog::info("Looking for assets in {}", in_dir.string());
+
+    const auto out_fixed_dir = out_dir / "fixed";
+    const auto out_assets_dir = out_dir / "assets";
 
     // Fix the assets if needed.
     if (fix_assets) {
         spdlog::stopwatch sw;
-        for (const auto &entry: fs::recursive_directory_iterator(in_dir)) {
-            if (!entry.is_regular_file()) continue;
-            const auto &entry_path = entry.path();
-            const auto out = out_fixed_dir / relative(entry_path, in_dir);
 
+        // Remove previously fixed files if they exist.
+        if (fs::exists(out_fixed_dir)) {
+            spdlog::info("Found previously fixed files. Deleting the fixed folder.");
+            fs::remove_all(out_fixed_dir);
+        }
+
+        for (const auto& entry : fs::recursive_directory_iterator(in_dir)) {
+            const auto& entry_path = entry.path();
+            const auto& entry_ext = entry_path.extension().string();
+            const auto& parent_stem = entry_path.parent_path().stem();
+
+            spdlog::trace("Recursing and fixing: {}", entry_path.string());
+
+            if (!entry.is_regular_file()) continue;
+            if (parent_stem == "fixed" || parent_stem == "assets") continue;
+            if (entry_ext != ".X" && entry_ext != ".x") continue;
+
+            const auto out = out_fixed_dir / fs::relative(entry_path, in_dir);
             if (!asset::fix(entry_path, out)) {
                 spdlog::error("Failed to fix all assets. Stopped to prevent issues.");
+                spdlog::dump_backtrace();
                 return 1;
             }
         }
-        spdlog::info("Fixing assets took {:.2}s", sw);
+        spdlog::info("Fixing assets took {}ms", sw.elapsed_ms().count());
     }
 
     // Convert the assets if needed.
-    if (convert_assets) {
-        const auto in = fix_assets ? out_fixed_dir : in_dir;
+    if (result["convert-assets"].as<bool>()) {
+        const auto in = result["fix-assets"].as<bool>() ? out_fixed_dir : in_dir;
+        if (in == out_fixed_dir && !exists(out_fixed_dir)) {
+            spdlog::error("Fix assets was enabled but there are no fixed assets.");
+            spdlog::error("Exiting to prevent undefined behaviour.");
+
+            return 1;
+        }
+
+        // Remove previously converted files if they exist.
+        if (fs::exists(out_assets_dir)) {
+            spdlog::info("Found previously converted files. Deleting the assets folder.");
+            fs::remove_all(out_assets_dir);
+        }
 
         spdlog::stopwatch sw;
-        for (const auto &entry: fs::recursive_directory_iterator(in)) {
+        for (const auto& entry: fs::recursive_directory_iterator(in)) {
+            const auto& entry_path = entry.path();
+            const auto& entry_ext = entry_path.extension().string();
+            spdlog::trace("Recursing and converting: {}", entry_path.string());
+
             if (!entry.is_regular_file()) continue;
-            const auto &entry_path = entry.path();
-            const auto out_path = (out_assets_dir / relative(entry_path, in))
+            if (entry_ext != ".X" && entry_ext != ".x") continue;
+
+            const auto out_path = (out_assets_dir / fs::relative(entry_path, in))
                 .replace_extension("gltf");
 
             if (!asset::load(entry_path) || !asset::dump("gltf2", out_path)) {
                 spdlog::error("Failed to dump all assets. Stopped to prevent issues.");
+                spdlog::dump_backtrace();
                 return 1;
             }
         }
-        spdlog::info("Converting assets took {:.2}s", sw);
+        spdlog::info("Converting assets took {}ms", sw.elapsed_ms().count());
     }
 
     // Convert the maps if needed.
@@ -124,6 +158,6 @@ int main(const int argc, const char **argv) {
         spdlog::info("Don't forget to copy the tiles that the map uses to the 'tiles\\' folder!");
     }
 
-    spdlog::info("💖 Completed! Have a nice day.");
+    spdlog::info("<3 Completed! Have a nice day.");
     return 0;
 }
