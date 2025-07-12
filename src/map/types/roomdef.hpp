@@ -7,11 +7,13 @@
 #include "metaobject.hpp"
 #include "roomrect.hpp"
 
-namespace pz {
+namespace pz
+{
     class buildingdef;
 
     //! TODO: Document
-    struct roomdef {
+    struct roomdef
+    {
         std::string name;
 
         uint32_t level;

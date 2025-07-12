@@ -11,33 +11,46 @@
 #define STREAM_READ(stream, out) stream.read(reinterpret_cast<char *>(&out), sizeof(out))
 #define STREAM_READSZ(stream, out, size) stream.read(reinterpret_cast<char *>(&out), size)
 
-namespace pz {
-    bool map::write(const fs::path &out) {
+namespace pz
+{
+    bool map::write(const fs::path &out)
+    {
         // TODO: Loop through all of the required lists becacuse these are only 1 file per call.
         // return write_tbx(out) && write_tmx(out) && write_pzw(out);
         return write_tbx(out);
     }
 
 
-    bool map::read(const fs::path &in) {
+    bool map::read(const fs::path &in)
+    {
         this->name = in.filename().string();
 
         // Do a single pass, getting the last lotheader file to determine the
         // map's width and height in cells. Probably could've improved this but im tired.
-        for (const auto &entry: fs::directory_iterator(in)) {
-            if (!entry.is_regular_file()) continue;
+        for (const auto &entry : fs::directory_iterator(in)) {
+            if (!entry.is_regular_file()) {
+                continue;
+            }
+
             const auto &path = entry.path();
-            if (path.extension() != ".lotheader") continue;
+            if (path.extension() != ".lotheader") {
+                continue;
+            }
+
             const auto &stem = path.stem().string();
             const auto p = stem.find_first_of('_');
             const uint32_t wx = std::stoi(stem.substr(0, p));
             const uint32_t wy = std::stoi(stem.substr(p + 1));
 
-            if (this->worldx == 0) this->worldx = wx;
-            if (this->worldy == 0) this->worldy = wy;
+            if (this->worldx == 0)
+                this->worldx = wx;
+            if (this->worldy == 0)
+                this->worldy = wy;
 
-            if (wx >= this->worldx) this->width = wx - this->worldx + 1;
-            if (wy >= this->worldy) this->height = wy - this->worldy + 1;
+            if (wx >= this->worldx)
+                this->width = wx - this->worldx + 1;
+            if (wy >= this->worldy)
+                this->height = wy - this->worldy + 1;
         }
 
         // Resize vectors to save a little performance.
@@ -47,13 +60,15 @@ namespace pz {
         // for (auto &header: this->lotheaders) header.resize(this->height);
         // for (auto &pack: this->lotpacks) pack.resize(this->height);
 
-        for (const auto &entry: fs::directory_iterator(in)) { // NOLINT(*-use-anyofallof)
-            if (!entry.is_regular_file()) continue;
+        for (const auto &entry : fs::directory_iterator(in)) { // NOLINT(*-use-anyofallof)
+            if (!entry.is_regular_file())
+                continue;
 
             const auto &path = entry.path();
             // We only need to loop through the lotheader files, because we can infer the
             // other file names from just the cellX and cellY of the filename.
-            if (path.extension() != ".lotheader") continue;
+            if (path.extension() != ".lotheader")
+                continue;
             const auto &stem = path.stem().string();
             const auto p = stem.find_first_of('_');
             const auto wx = std::stoi(stem.substr(0, p));
@@ -80,7 +95,8 @@ namespace pz {
         return true;
     }
 
-    bool map::write_pzw(const fs::path &out) {
+    bool map::write_pzw(const fs::path &out)
+    {
         pugi::xml_document doc;
 
         auto world = doc.append_child("world");
@@ -91,18 +107,22 @@ namespace pz {
         pzw::add_propertyenums(doc);
         pzw::add_propertydefs(doc);
         // TODO: Finish.
+
+        return false;
     }
 
-    bool map::write_tbx(const fs::path &out, buildingdef* building) {
+    bool map::write_tbx(const fs::path &out)
+    {
         pugi::xml_document doc;
 
         auto building = doc.append_child("building");
         building.append_attribute("version") = 3;
 
-        return true;
+        return false;
     }
 
-    bool map::read_lotpack(const fs::path &in, const uint32_t wx, const uint32_t wy) {
+    bool map::read_lotpack(const fs::path &in, const uint32_t wx, const uint32_t wy)
+    {
         const auto fwx = wx / CHUNKGRID_SIZE;
         const auto fwy = wy / CHUNKGRID_SIZE;
         const auto cx = wx - this->worldx;
@@ -139,7 +159,8 @@ namespace pz {
                     STREAM_READ(stream, count);
                     if (count == -1) {
                         STREAM_READ(stream, skip);
-                        if (skip > 0) --skip;
+                        if (skip > 0)
+                            --skip;
                         continue;
                     }
 
@@ -176,7 +197,8 @@ namespace pz {
         return true;
     }
 
-    bool map::read_lotheader(const fs::path &in, const uint32_t wx, const uint32_t wy) {
+    bool map::read_lotheader(const fs::path &in, const uint32_t wx, const uint32_t wy)
+    {
         std::ifstream stream(in, std::ios::binary);
         if (!stream.is_open() || !stream.good()) {
             spdlog::error("Failed to open file {}", in.string());
@@ -193,7 +215,8 @@ namespace pz {
             getline(stream, tile);
             header.tiles.emplace_back(tile);
         }
-        stream.seekg(1, std::ios::cur); // Skip 0x00 byte because it's always 0x00 and not used.
+        stream.seekg(1, std::ios::cur);
+        // Skip 0x00 byte because it's always 0x00 and not used.
         STREAM_READ(stream, header.width);
         STREAM_READ(stream, header.height);
         STREAM_READ(stream, header.levels);
@@ -252,7 +275,8 @@ namespace pz {
         for (uint32_t x = 0; x < CHUNKGRID_SIZE; x++) {
             for (uint32_t y = 0; y < CHUNKGRID_SIZE; y++) {
                 // TODO: Original per-pixel formula does cellX*30+x so do we maybe do cellX/30-x?
-                STREAM_READSZ(stream, header.intensity[x * CHUNKGRID_SIZE + y], sizeof(uint8_t));
+                STREAM_READSZ(stream, header.intensity[x * CHUNKGRID_SIZE + y],
+                              sizeof(uint8_t));
             }
         }
 

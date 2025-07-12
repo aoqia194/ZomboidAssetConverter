@@ -4,7 +4,8 @@
 #include <cstdint>
 
 //! TODO: Document.
-struct metaobject {
+struct metaobject
+{
     //! TODO: Comment
     uint32_t type;
 

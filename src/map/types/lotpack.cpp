@@ -1,13 +1,17 @@
 #include "lotpack.hpp"
-#include "..\main.hpp"
 
-namespace pz {
-    lotpack::lotpack(const uint32_t wx, const uint32_t wy, lotheader *header) {
+#include "../../main.hpp"
+
+namespace pz
+{
+    lotpack::lotpack(const uint32_t wx, const uint32_t wy, lotheader *header)
+    {
         this->wx = wx;
         this->wy = wy;
         this->header = header;
 
-        // TODO: Is CHUNKGRID_WIDTH really the right maxsz to use here? Can't it go higher??
+        // TODO: Is CHUNKGRID_WIDTH really the right maxsz to use here?
+        //       Can't it go higher??
         this->data.resize(CHUNKGRID_SIZE);
         for (int x = 0; x < CHUNKGRID_SIZE; x++) {
             this->data[x].resize(CHUNKGRID_SIZE);

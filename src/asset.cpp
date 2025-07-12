@@ -10,13 +10,15 @@
 
 #include "spdlog/spdlog.h"
 
-namespace asset {
+namespace asset
+{
     const std::regex BROKEN_XANIM_REGEX(R"(^\s*;\s*$)");
 
     const auto _importer = std::make_shared<Assimp::Importer>();
     const auto _exporter = std::make_shared<Assimp::Exporter>();
 
-    bool dump(const char *format, const fs::path &out) {
+    bool dump(const char *format, const fs::path &out)
+    {
         create_directories(out.parent_path());
 
         spdlog::debug("Exporting asset scene to {}", out.string());
@@ -27,7 +29,8 @@ namespace asset {
         }
         spdlog::info("Saved exported file at {}", out.string());
 
-        // SHOULDN'T need to explicitly reset because the scene SHOULD get deleted when this goes out of scope.
+        // SHOULDN'T need to explicitly reset because the scene
+        // SHOULD get deleted when this goes out of scope.
         // But we do because idk why the smart pointer isn't resetting automatically.
         spdlog::debug("Resetting assimp scene.");
         _scene.reset();
@@ -36,7 +39,8 @@ namespace asset {
         return res == aiReturn_SUCCESS;
     }
 
-    bool load(const fs::path &in) {
+    bool load(const fs::path &in)
+    {
         auto path_str = in.string();
         if (in.empty() || !exists(in)) {
             spdlog::warn("Asset {} does not exist.", path_str);
@@ -49,14 +53,16 @@ namespace asset {
             spdlog::warn("Previously loaded scene found. It WILL get discarded!");
         }
 
-        _scene = std::make_shared<const aiScene*>(_importer->ReadFile(
+        _scene = std::make_shared<const aiScene *>(_importer->ReadFile(
             path_str.c_str(),
-            aiProcess_ValidateDataStructure | aiProcess_FindInvalidData | aiProcess_GlobalScale |
+            aiProcess_ValidateDataStructure | aiProcess_FindInvalidData |
+            aiProcess_GlobalScale |
             aiProcess_SortByPType));
         if (_scene == nullptr || *_scene == nullptr
             || strlen(_importer->GetErrorString()) != 0
             || (*_scene)->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-            spdlog::error("Failed to load asset at {}: {}", path_str, _importer->GetErrorString());
+            spdlog::error("Failed to load asset at {}: {}", path_str,
+                          _importer->GetErrorString());
             spdlog::dump_backtrace();
             return false;
         }
@@ -64,7 +70,8 @@ namespace asset {
         return true;
     }
 
-    bool fix(const fs::path &in, const fs::path &out) {
+    bool fix(const fs::path &in, const fs::path &out)
+    {
         if (!exists(in)) {
             spdlog::error("Asset {} does not exist", in.string());
             spdlog::dump_backtrace();

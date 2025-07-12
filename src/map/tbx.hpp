@@ -5,17 +5,17 @@
 
 #include "..\main.hpp"
 
-namespace pz {
-    class tbx {
+namespace pz
+{
+    class tbx
+    {
         [[maybe_unused]]
-        pugi::xml_node tile_node(pugi::xml_node &parent,
-                                 const std::string &name,
+        pugi::xml_node tile_node(pugi::xml_node &parent, const std::string &name,
                                  const std::string &colour,
                                  const std::string &default_value);
 
         [[maybe_unused]]
-        pugi::xml_node tileentry_node(pugi::xml_node &parent,
-                                      const std::string &name,
+        pugi::xml_node tileentry_node(pugi::xml_node &parent, const std::string &name,
                                       const std::string &colour);
 
         void add_floor(pugi::xml_node &parent);

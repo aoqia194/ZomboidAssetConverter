@@ -7,9 +7,11 @@
 
 #include "lotheader.hpp"
 
-namespace pz {
+namespace pz
+{
     //! TODO: Document.
-    class lotpack {
+    class lotpack
+    {
         //! X position of the lot in the world.
         uint32_t wx;
         //! Y position of the lot in the world.

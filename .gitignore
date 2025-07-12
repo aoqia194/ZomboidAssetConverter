@@ -8,6 +8,7 @@
 !/.gitignore
 !/.editorconfig
 !/.clang-format
+!/.clang-tidy
 !/vcpkg.json
 !/**/CMakeLists.txt
 !/CMakePresets.json

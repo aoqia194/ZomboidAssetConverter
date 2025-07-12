@@ -8,8 +8,10 @@
 #include "map\types\lotheader.hpp"
 #include "map\types\lotpack.hpp"
 
-namespace pz {
-    class map {
+namespace pz
+{
+    class map
+    {
         //! Name of the map.
         std::string name;
 
@@ -34,7 +36,7 @@ namespace pz {
         //! Writes the final PZW WorldEd project file to the out dir.
         //! @param out Directory to write the file to.
         //! @return True if the file was written successfully.
-        bool write_pzw(const fs::path &out);
+        bool write_pzw(const fs::path &out) const;
 
         //! Writes a TMX file constructed from lot chunks to the out dir.
         //! @param out Directory to write the file to.

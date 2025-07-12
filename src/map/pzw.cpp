@@ -1,11 +1,12 @@
 #include "pzw.hpp"
 
-namespace pz::pzw {
+namespace pz::pzw
+{
     [[maybe_unused]]
-    pugi::xml_node objectgroup_node(pugi::xml_node &parent,
-                                    const std::string &name,
+    pugi::xml_node objectgroup_node(pugi::xml_node &parent, const std::string &name,
                                     const std::string &colour,
-                                    const std::string &default_value) {
+                                    const std::string &default_value)
+    {
         auto obj = parent.append_child("objectgroup");
         obj.append_attribute("name") = name;
         obj.append_attribute("color") = colour;
@@ -14,9 +15,9 @@ namespace pz::pzw {
     }
 
     [[maybe_unused]]
-    pugi::xml_node objectgroup_node(pugi::xml_node &parent,
-                                    const std::string &name,
-                                    const std::string &colour) {
+    pugi::xml_node objectgroup_node(pugi::xml_node &parent, const std::string &name,
+                                    const std::string &colour)
+    {
         auto obj = parent.append_child("objectgroup");
         obj.append_attribute("name") = name;
         obj.append_attribute("color") = colour;
@@ -25,29 +26,32 @@ namespace pz::pzw {
     }
 
     [[maybe_unused]]
-    pugi::xml_node objecttype_node(pugi::xml_node &parent, const std::string &name) {
+    pugi::xml_node objecttype_node(pugi::xml_node &parent, const std::string &name)
+    {
         auto obj = parent.append_child("objecttype");
         obj.append_attribute("name") = name;
         return obj;
     }
 
     [[maybe_unused]]
-    pugi::xml_node propertydef_node(pugi::xml_node &parent,
-                                    const std::string &name,
+    pugi::xml_node propertydef_node(pugi::xml_node &parent, const std::string &name,
                                     const std::string &default_value,
-                                    const std::string &enum_value) {
+                                    const std::string &enum_value)
+    {
         auto obj = parent.append_child("propertydef");
         obj.append_attribute("name") = name;
         obj.append_attribute("default") = default_value;
-        if (enum_value == "!") obj.append_attribute("enum") = name;
-        else if (!enum_value.empty()) obj.append_attribute("enum") = enum_value;
+        if (enum_value == "!")
+            obj.append_attribute("enum") = name;
+        else if (!enum_value.empty())
+            obj.append_attribute("enum") = enum_value;
         return obj;
     }
 
     [[maybe_unused]]
-    pugi::xml_node propertydef_node(pugi::xml_node &parent,
-                                    const std::string &name,
-                                    const std::string &default_value) {
+    pugi::xml_node propertydef_node(pugi::xml_node &parent, const std::string &name,
+                                    const std::string &default_value)
+    {
         auto obj = parent.append_child("propertydef");
         obj.append_attribute("name") = name;
         obj.append_attribute("default") = default_value;
@@ -55,10 +59,9 @@ namespace pz::pzw {
     }
 
     [[maybe_unused]]
-    pugi::xml_node propertyenum_node(pugi::xml_node &parent,
-                                     const std::string &name,
-                                     const std::string &choices,
-                                     const bool multi = false) {
+    pugi::xml_node propertyenum_node(pugi::xml_node &parent, const std::string &name,
+                                     const std::string &choices, const bool multi = false)
+    {
         auto obj = parent.append_child("propertyenum");
         obj.append_attribute("name") = name;
         obj.append_attribute("choices") = choices;
@@ -66,8 +69,8 @@ namespace pz::pzw {
         return obj;
     }
 
-
-    void add_objectgroups(pugi::xml_node &parent) {
+    void add_objectgroups(pugi::xml_node &parent)
+    {
         objectgroup_node(parent, "ParkingStall", "#ff007f");
         objectgroup_node(parent, "TownZone", "#aa0000");
         objectgroup_node(parent, "Forest", "#00aa00");
@@ -83,8 +86,8 @@ namespace pz::pzw {
         objectgroup_node(parent, "RoomTone", "#0000ff");
     }
 
-
-    void add_objecttypes(pugi::xml_node &parent) {
+    void add_objecttypes(pugi::xml_node &parent)
+    {
         objecttype_node(parent, "TownZone");
         objecttype_node(parent, "Forest");
         objecttype_node(parent, "DeepForest");
@@ -101,8 +104,8 @@ namespace pz::pzw {
         objecttype_node(parent, "SpawnPoint");
     }
 
-
-    void add_templates(pugi::xml_node &parent) {
+    void add_templates(pugi::xml_node &parent)
+    {
         // ParkingStallN
         auto psn = parent.append_child("template");
         psn.append_attribute("name") = "ParkingStallN";
@@ -184,15 +187,15 @@ namespace pz::pzw {
         // SpawnPoint
         auto sp = parent.append_child("template");
         sp.append_attribute("name") = "ParkingStallW";
-        sp.append_child("description").text().set(
-            "This template holds the default set of properties for all spawn points in the world.");
+        sp.append_child("description").text().set("This template holds the default set of"
+            " properties for all spawn points in the world.");
         auto sp_professions = sp.append_child("property");
         sp_professions.append_attribute("name") = "Professions";
         sp_professions.append_attribute("value") = "all";
     }
 
-
-    void add_propertydefs(pugi::xml_node &parent) {
+    void add_propertydefs(pugi::xml_node &parent)
+    {
         propertydef_node(parent, "Direction", "N", "!");
         propertydef_node(parent, "FaceDirection", "true");
         propertydef_node(parent, "WaterDirection", "0.0");
@@ -212,14 +215,15 @@ namespace pz::pzw {
                 "Use &quot;all&quot; to allow any profession to spawn here.");
     }
 
-    void add_propertyenums(pugi::xml_node &parent) {
+    void add_propertyenums(pugi::xml_node &parent)
+    {
         propertyenum_node(parent, "Direction", "N,S,W,E");
         propertyenum_node(parent, "Pose", "pose01,pose02,pose03");
         propertyenum_node(parent, "Skin", "White,Black");
-        propertyenum_node(parent, "RoomTone", "Generic,Barn,Mall,Warehouse,Prison,Church,Office,"
-                          "Factory");
-        propertyenum_node(parent, "Professions", "all,unemployed,policeofficer,constructionworker,"
-                          "securityguard,parkranger,fireofficer",
-                          true);
+        propertyenum_node(parent, "RoomTone",
+                          "Generic,Barn,Mall,Warehouse,Prison,Church,Office,Factory");
+        propertyenum_node(parent, "Professions",
+                          "all,unemployed,policeofficer,constructionworker,"
+                          "securityguard,parkranger,fireofficer", true);
     }
 }
