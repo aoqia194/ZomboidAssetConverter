@@ -130,7 +130,7 @@ IntegerLiteralSeparator:
 JavaScriptQuotes: Leave
 JavaScriptWrapImports: true
 KeepEmptyLines:
-  AtEndOfFile: false
+  AtEndOfFile: true
   AtStartOfBlock: true
   AtStartOfFile: true
 LambdaBodyIndentation: Signature

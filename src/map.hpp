@@ -5,38 +5,38 @@
 
 #include "main.hpp"
 
-#include "map\types\lotheader.hpp"
-#include "map\types\lotpack.hpp"
+#include "map/types/lotheader.hpp"
+#include "map/types/lotpack.hpp"
 
-namespace pz
+namespace map
 {
-    class map
+    class pzmap
     {
         //! Name of the map.
         std::string name;
 
         //! Width of the map in chunks.
-        uint32_t width = 0;
+        uint32_t width{};
 
         //! Height of the map in chunks.
-        uint32_t height = 0;
+        uint32_t height{};
 
         //! The world starting position on the X axis.
-        uint32_t worldx = 0;
+        uint32_t worldx{};
 
         //! The world starting position on the Y axis;
-        uint32_t worldy = 0;
+        uint32_t worldy{};
 
         //! The map's lotheader files.
-        std::vector<std::vector<lotheader> > lotheaders{};
+        std::vector<std::vector<types::lotheader> > lotheaders{};
 
-        //! The map's lotpack files.
-        std::vector<std::vector<lotpack> > lotpacks{};
+        //! The map's lotpack files stored in a 2D XY matrix.
+        std::vector<std::vector<types::lotpack> > lotpacks{};
 
         //! Writes the final PZW WorldEd project file to the out dir.
         //! @param out Directory to write the file to.
         //! @return True if the file was written successfully.
-        bool write_pzw(const fs::path &out) const;
+        bool write_pzw(const fs::path &out);
 
         //! Writes a TMX file constructed from lot chunks to the out dir.
         //! @param out Directory to write the file to.

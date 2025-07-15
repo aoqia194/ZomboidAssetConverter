@@ -3,9 +3,9 @@
 namespace pz::pzw
 {
     [[maybe_unused]]
-    pugi::xml_node objectgroup_node(pugi::xml_node &parent, const std::string &name,
-                                    const std::string &colour,
-                                    const std::string &default_value)
+    pugi::xml_node objectgroup_node(pugi::xml_node &parent, const std::string_view &name,
+                                    const std::string_view &colour,
+                                    const std::string_view &default_value)
     {
         auto obj = parent.append_child("objectgroup");
         obj.append_attribute("name") = name;
@@ -15,8 +15,8 @@ namespace pz::pzw
     }
 
     [[maybe_unused]]
-    pugi::xml_node objectgroup_node(pugi::xml_node &parent, const std::string &name,
-                                    const std::string &colour)
+    pugi::xml_node objectgroup_node(pugi::xml_node &parent, const std::string_view &name,
+                                    const std::string_view &colour)
     {
         auto obj = parent.append_child("objectgroup");
         obj.append_attribute("name") = name;
@@ -26,7 +26,7 @@ namespace pz::pzw
     }
 
     [[maybe_unused]]
-    pugi::xml_node objecttype_node(pugi::xml_node &parent, const std::string &name)
+    pugi::xml_node objecttype_node(pugi::xml_node &parent, const std::string_view &name)
     {
         auto obj = parent.append_child("objecttype");
         obj.append_attribute("name") = name;
@@ -34,9 +34,9 @@ namespace pz::pzw
     }
 
     [[maybe_unused]]
-    pugi::xml_node propertydef_node(pugi::xml_node &parent, const std::string &name,
-                                    const std::string &default_value,
-                                    const std::string &enum_value)
+    pugi::xml_node propertydef_node(pugi::xml_node &parent, const std::string_view &name,
+                                    const std::string_view &default_value,
+                                    const std::string_view &enum_value)
     {
         auto obj = parent.append_child("propertydef");
         obj.append_attribute("name") = name;
@@ -49,8 +49,8 @@ namespace pz::pzw
     }
 
     [[maybe_unused]]
-    pugi::xml_node propertydef_node(pugi::xml_node &parent, const std::string &name,
-                                    const std::string &default_value)
+    pugi::xml_node propertydef_node(pugi::xml_node &parent, const std::string_view &name,
+                                    const std::string_view &default_value)
     {
         auto obj = parent.append_child("propertydef");
         obj.append_attribute("name") = name;
@@ -59,8 +59,8 @@ namespace pz::pzw
     }
 
     [[maybe_unused]]
-    pugi::xml_node propertyenum_node(pugi::xml_node &parent, const std::string &name,
-                                     const std::string &choices, const bool multi = false)
+    pugi::xml_node propertyenum_node(pugi::xml_node &parent, const std::string_view &name,
+                                     const std::string_view &choices, const bool multi)
     {
         auto obj = parent.append_child("propertyenum");
         obj.append_attribute("name") = name;
@@ -69,43 +69,21 @@ namespace pz::pzw
         return obj;
     }
 
-    void add_objectgroups(pugi::xml_node &parent)
+    void add_object_nodes(pugi::xml_node &parent)
     {
-        objectgroup_node(parent, "ParkingStall", "#ff007f");
-        objectgroup_node(parent, "TownZone", "#aa0000");
-        objectgroup_node(parent, "Forest", "#00aa00");
-        objectgroup_node(parent, "Nav", "#55aaff");
-        objectgroup_node(parent, "DeepForest", "#003500");
-        objectgroup_node(parent, "Vegitation", "#b3b300");
-        objectgroup_node(parent, "TrailerPark", "#f50000");
-        objectgroup_node(parent, "Farm", "#55ff7f");
-        objectgroup_node(parent, "FarmLand", "#bcff7d");
-        objectgroup_node(parent, "WaterFlow", "#0000ff");
-        objectgroup_node(parent, "WaterZone", "#0000ff");
-        objectgroup_node(parent, "Mannequin", "#0000ff");
-        objectgroup_node(parent, "RoomTone", "#0000ff");
-    }
+        for (const auto &[name, colour] : DEFAULT_OBJECT_GROUPS) {
+            objectgroup_node(parent, name, colour);
+        }
 
-    void add_objecttypes(pugi::xml_node &parent)
-    {
-        objecttype_node(parent, "TownZone");
-        objecttype_node(parent, "Forest");
-        objecttype_node(parent, "DeepForest");
-        objecttype_node(parent, "Nav");
-        objecttype_node(parent, "Vegitation");
-        objecttype_node(parent, "TrailerPark");
-        objecttype_node(parent, "Farm");
-        objecttype_node(parent, "ParkingStall");
-        objecttype_node(parent, "FarmLand");
-        objecttype_node(parent, "WaterFlow");
-        objecttype_node(parent, "WaterZone");
-        objecttype_node(parent, "Mannequin");
-        objecttype_node(parent, "RoomTone");
-        objecttype_node(parent, "SpawnPoint");
+        for (const auto &type : DEFAULT_OBJECT_TYPES) {
+            objecttype_node(parent, type);
+        }
     }
 
     void add_templates(pugi::xml_node &parent)
     {
+        // TODO: Should probably rewrite this using objects and stuff.
+
         // ParkingStallN
         auto psn = parent.append_child("template");
         psn.append_attribute("name") = "ParkingStallN";
@@ -140,30 +118,30 @@ namespace pz::pzw
         wfn_speed.append_attribute("name") = "WaterSpeed";
         wfn_speed.append_attribute("value") = "1.0";
         // WaterFlowS
-        auto waterflows = parent.append_child("template");
-        waterflows.append_attribute("name") = "WaterFlowS";
-        auto waterflows_property = waterflows.append_child("property");
-        waterflows_property.append_attribute("name") = "WaterDirection";
-        waterflows_property.append_attribute("value") = 180;
-        auto wfs_speed = wfn.append_child("property");
+        auto wfs = parent.append_child("template");
+        wfs.append_attribute("name") = "WaterFlowS";
+        auto wfs_dir = wfs.append_child("property");
+        wfs_dir.append_attribute("name") = "WaterDirection";
+        wfs_dir.append_attribute("value") = 180;
+        auto wfs_speed = wfs.append_child("property");
         wfs_speed.append_attribute("name") = "WaterSpeed";
         wfs_speed.append_attribute("value") = "1.0";
         // WaterFlowE
-        auto waterflowe = parent.append_child("template");
-        waterflowe.append_attribute("name") = "WaterFlowE";
-        auto waterflowe_property = waterflowe.append_child("property");
-        waterflowe_property.append_attribute("name") = "WaterDirection";
-        waterflowe_property.append_attribute("value") = 90;
-        auto wfe_speed = wfn.append_child("property");
+        auto wfe = parent.append_child("template");
+        wfe.append_attribute("name") = "WaterFlowE";
+        auto wfe_dir = wfe.append_child("property");
+        wfe_dir.append_attribute("name") = "WaterDirection";
+        wfe_dir.append_attribute("value") = 90;
+        auto wfe_speed = wfe.append_child("property");
         wfe_speed.append_attribute("name") = "WaterSpeed";
         wfe_speed.append_attribute("value") = "1.0";
         // WaterFlowW
-        auto waterfloww = parent.append_child("template");
-        waterfloww.append_attribute("name") = "WaterFlowW";
-        auto waterfloww_property = waterfloww.append_child("property");
-        waterfloww_property.append_attribute("name") = "WaterDirection";
-        waterfloww_property.append_attribute("value") = 270;
-        auto wfw_speed = wfn.append_child("property");
+        auto wfw = parent.append_child("template");
+        wfw.append_attribute("name") = "WaterFlowW";
+        auto wfw_dir = wfw.append_child("property");
+        wfw_dir.append_attribute("name") = "WaterDirection";
+        wfw_dir.append_attribute("value") = 270;
+        auto wfw_speed = wfw.append_child("property");
         wfw_speed.append_attribute("name") = "WaterSpeed";
         wfw_speed.append_attribute("value") = "1.0";
         // WaterZone
@@ -194,7 +172,7 @@ namespace pz::pzw
         sp_professions.append_attribute("value") = "all";
     }
 
-    void add_propertydefs(pugi::xml_node &parent)
+    void add_property_defs(pugi::xml_node &parent)
     {
         propertydef_node(parent, "Direction", "N", "!");
         propertydef_node(parent, "FaceDirection", "true");
@@ -215,7 +193,7 @@ namespace pz::pzw
                 "Use &quot;all&quot; to allow any profession to spawn here.");
     }
 
-    void add_propertyenums(pugi::xml_node &parent)
+    void add_property_enums(pugi::xml_node &parent)
     {
         propertyenum_node(parent, "Direction", "N,S,W,E");
         propertyenum_node(parent, "Pose", "pose01,pose02,pose03");

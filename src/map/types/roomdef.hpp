@@ -7,24 +7,25 @@
 #include "metaobject.hpp"
 #include "roomrect.hpp"
 
-namespace pz
+namespace map::types
 {
-    class buildingdef;
+    // Forward declared because buildingdef.hpp includes this file.
+    struct buildingdef;
 
     //! TODO: Document
     struct roomdef
     {
-        std::string name;
+        std::string name{};
 
-        uint32_t level;
+        uint32_t level{};
 
-        uint32_t roomrect_count;
+        uint32_t roomrect_count{};
 
         std::vector<roomrect> roomrects{};
 
-        buildingdef *building;
+        buildingdef *building{};
 
-        uint32_t objects_count;
+        uint32_t objects_count{};
 
         std::vector<metaobject> objects{};
     };

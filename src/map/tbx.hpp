@@ -3,9 +3,9 @@
 
 #include "pugixml.hpp"
 
-#include "..\main.hpp"
+#include "../main.hpp"
 
-namespace pz
+namespace pz::map
 {
     class tbx
     {

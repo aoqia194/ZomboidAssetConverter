@@ -30,10 +30,10 @@ int main(const int argc, const char **argv)
          cxxopts::value<std::string>()->default_value((exe_dir / "out").string())
             );
     options.add_options("asset")
-        ("a,fix-assets", "Fix input asset files")
-        ("A,convert-assets", "Convert assets");
+        ("a,fix-assets", "Fix input asset files so that converter can work properly")
+        ("A,convert-assets", "Convert assets to GLTF");
     options.add_options("maps")
-        ("m,convert-maps", "Convert maps");
+        ("m,convert-maps", "Convert maps to PZW (and friends) for WorldEd");
     options.parse_positional({"input"});
     const auto result = options.parse(argc, argv);
 
@@ -145,7 +145,7 @@ int main(const int argc, const char **argv)
             const auto &entry_stem = entry_path.stem().string();
             spdlog::trace("convert maps dir {}", entry.path().string());
 
-            pz::map pzmap{};
+            map::pzmap pzmap{};
             if (!pzmap.read(entry_path)) {
                 spdlog::error("Failed to read map from {}", entry_path.string());
                 return 1;

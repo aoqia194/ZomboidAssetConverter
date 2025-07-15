@@ -3,15 +3,17 @@
 
 #include <cstdint>
 
-//! TODO: Document.
-struct metaobject
+namespace map::types
 {
-    //! TODO: Comment
-    uint32_t type;
+    //! TODO: Document.
+    struct metaobject
+    {
+        uint32_t type{};
 
-    uint32_t x;
+        uint32_t x{};
 
-    uint32_t y;
-};
+        uint32_t y{};
+    };
+}
 
 #endif //METAOBJECT_HPP

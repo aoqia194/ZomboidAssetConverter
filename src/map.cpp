@@ -4,16 +4,16 @@
 
 #include "pugixml.hpp"
 
-#include "map\pzw.hpp"
+#include "map/pzw.hpp"
 
-#include "spdlog\spdlog.h"
+#include "spdlog/spdlog.h"
 
 #define STREAM_READ(stream, out) stream.read(reinterpret_cast<char *>(&out), sizeof(out))
 #define STREAM_READSZ(stream, out, size) stream.read(reinterpret_cast<char *>(&out), size)
 
-namespace pz
+namespace map
 {
-    bool map::write(const fs::path &out)
+    bool pzmap::write(const fs::path &out)
     {
         // TODO: Loop through all of the required lists becacuse these are only 1 file per call.
         // return write_tbx(out) && write_tmx(out) && write_pzw(out);
@@ -21,7 +21,7 @@ namespace pz
     }
 
 
-    bool map::read(const fs::path &in)
+    bool pzmap::read(const fs::path &in)
     {
         this->name = in.filename().string();
 
@@ -42,33 +42,31 @@ namespace pz
             const uint32_t wx = std::stoi(stem.substr(0, p));
             const uint32_t wy = std::stoi(stem.substr(p + 1));
 
-            if (this->worldx == 0)
-                this->worldx = wx;
-            if (this->worldy == 0)
-                this->worldy = wy;
+            // TODO: Will this break if the map starts at (0,0)?
+            this->worldx = this->worldx == 0 ? wx : this->worldx;
+            this->worldy = this->worldy == 0 ? wx : this->worldy;
 
-            if (wx >= this->worldx)
-                this->width = wx - this->worldx + 1;
-            if (wy >= this->worldy)
-                this->height = wy - this->worldy + 1;
+            this->width = wx >= this->worldx ? wx - this->worldx + 1 : this->width;
+            this->height = wy >= this->worldy ? wy - this->worldy + 1 : this->height;
         }
 
-        // Resize vectors to save a little performance.
-        // And because the inner vectors need to be initialised properly.
         this->lotheaders.resize(this->width);
         this->lotpacks.resize(this->width);
         // for (auto &header: this->lotheaders) header.resize(this->height);
         // for (auto &pack: this->lotpacks) pack.resize(this->height);
 
         for (const auto &entry : fs::directory_iterator(in)) { // NOLINT(*-use-anyofallof)
-            if (!entry.is_regular_file())
+            if (!entry.is_regular_file()) {
                 continue;
+            }
 
             const auto &path = entry.path();
             // We only need to loop through the lotheader files, because we can infer the
             // other file names from just the cellX and cellY of the filename.
-            if (path.extension() != ".lotheader")
+            if (path.extension() != ".lotheader") {
                 continue;
+            }
+
             const auto &stem = path.stem().string();
             const auto p = stem.find_first_of('_');
             const auto wx = std::stoi(stem.substr(0, p));
@@ -95,7 +93,7 @@ namespace pz
         return true;
     }
 
-    bool map::write_pzw(const fs::path &out)
+    bool pzmap::write_pzw(const fs::path &out)
     {
         pugi::xml_document doc;
 
@@ -104,14 +102,33 @@ namespace pz
         world.append_attribute("width") = this->width;
         world.append_attribute("height") = this->height;
 
-        pzw::add_propertyenums(doc);
-        pzw::add_propertydefs(doc);
+        pzw::add_property_enums(doc);
+        pzw::add_property_defs(doc);
         // TODO: Finish.
 
         return false;
     }
 
-    bool map::write_tbx(const fs::path &out)
+    bool pzmap::write_tmx(const fs::path &out)
+    {
+        pugi::xml_document doc;
+
+        // Do we need this? Maybe pugi auto generates this...
+        // <?xml version="1.0" encoding="UTF-8"?>
+
+        auto map = doc.append_child("map");
+        map.append_attribute("version") = "1.0";
+        map.append_attribute("orientation") = "levelisometric"; // This is user defined!!
+        map.append_attribute("width") = CHUNK_WIDTH * CHUNKGRID_SIZE;
+        map.append_attribute("height") = CHUNK_HEIGHT * CHUNKGRID_SIZE;
+        map.append_attribute("tilewidth") = "64";  // This is user defined!!
+        map.append_attribute("tileheight") = "32"; // This is user defined!!
+
+        // https://github.com/timbaker/pzworlded/blob/49f15346d8d7fb9f5c97676bdfe380350a28f207/src/libtiled/mapwriter.cpp#L485
+    }
+
+
+    bool pzmap::write_tbx(const fs::path &out)
     {
         pugi::xml_document doc;
 
@@ -121,7 +138,7 @@ namespace pz
         return false;
     }
 
-    bool map::read_lotpack(const fs::path &in, const uint32_t wx, const uint32_t wy)
+    bool pzmap::read_lotpack(const fs::path &in, const uint32_t wx, const uint32_t wy)
     {
         const auto fwx = wx / CHUNKGRID_SIZE;
         const auto fwy = wy / CHUNKGRID_SIZE;
@@ -134,8 +151,8 @@ namespace pz
             return false;
         }
 
-        lotheader *header = &this->lotheaders[cx][cy];
-        auto pack = lotpack(wx, wy, header);
+        types::lotheader *header = &this->lotheaders[cx][cy];
+        auto pack = types::lotpack(wx, wy, header);
 
         // wtf is this formula???
         const auto lwx = wx - fwx * CHUNKGRID_SIZE;
@@ -159,8 +176,10 @@ namespace pz
                     STREAM_READ(stream, count);
                     if (count == -1) {
                         STREAM_READ(stream, skip);
-                        if (skip > 0)
+                        if (skip > 0) {
                             --skip;
+                        }
+
                         continue;
                     }
 
@@ -197,7 +216,7 @@ namespace pz
         return true;
     }
 
-    bool map::read_lotheader(const fs::path &in, const uint32_t wx, const uint32_t wy)
+    bool pzmap::read_lotheader(const fs::path &in, const uint32_t wx, const uint32_t wy)
     {
         std::ifstream stream(in, std::ios::binary);
         if (!stream.is_open() || !stream.good()) {
@@ -205,8 +224,7 @@ namespace pz
             return false;
         }
 
-        // We return this later.
-        auto header = lotheader(wx, wy);
+        types::lotheader header{wx, wy};
 
         STREAM_READ(stream, header.version);
         STREAM_READ(stream, header.tile_count);
@@ -222,14 +240,14 @@ namespace pz
         STREAM_READ(stream, header.levels);
         STREAM_READ(stream, header.room_count);
         for (uint32_t i = 0; i < header.room_count; ++i) {
-            auto rdef = roomdef();
+            auto rdef = types::roomdef{};
             std::string rname;
             getline(stream, rname);
             rdef.name = rname;
             STREAM_READ(stream, rdef.level);
             STREAM_READ(stream, rdef.roomrect_count);
             for (uint32_t j = 0; j < rdef.roomrect_count; ++j) {
-                auto rrect = roomrect();
+                auto rrect = types::roomrect{};
                 STREAM_READ(stream, rrect.x);
                 STREAM_READ(stream, rrect.y);
                 STREAM_READ(stream, rrect.width);
@@ -244,7 +262,7 @@ namespace pz
             // TODO: Are metaobjects unused?
             for (uint32_t j = 0; j < rdef.objects_count; ++j) {
                 // ReSharper disable once CppUseStructuredBinding
-                auto metaobj = metaobject();
+                auto metaobj = types::metaobject{};
                 STREAM_READ(stream, metaobj.type);
                 STREAM_READ(stream, metaobj.x);
                 STREAM_READ(stream, metaobj.y);
@@ -255,7 +273,7 @@ namespace pz
 
         STREAM_READ(stream, header.building_count);
         for (uint32_t i = 0; i < header.building_count; ++i) {
-            auto bdef = buildingdef();
+            auto bdef = types::buildingdef{};
             STREAM_READ(stream, bdef.room_count);
 
             // Linking the building back to the room that it belongs to.
@@ -271,7 +289,6 @@ namespace pz
         }
 
         // Read the zombie intensity into a 300x300 matrix. Each lot has it's own one.
-        header.intensity.resize(CHUNKGRID_SIZE * CHUNKGRID_SIZE);
         for (uint32_t x = 0; x < CHUNKGRID_SIZE; x++) {
             for (uint32_t y = 0; y < CHUNKGRID_SIZE; y++) {
                 // TODO: Original per-pixel formula does cellX*30+x so do we maybe do cellX/30-x?
