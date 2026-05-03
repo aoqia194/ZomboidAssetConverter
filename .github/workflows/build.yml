@@ -69,4 +69,4 @@ jobs:
         with:
           name: build-assets-${{ matrix.artifact_suffix }}
           path: |
-            build/release/*
+            build/release/bin/*
