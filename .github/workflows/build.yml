@@ -51,6 +51,9 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           configurePreset: release
+          # configurePresetAdditionalArgs: "['--config Release']"
+          buildPreset: release
+          # buildPresetAdditionalArgs: "['--config Release']"
         env:
           VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
 
@@ -66,7 +69,4 @@ jobs:
         with:
           name: build-assets-${{ matrix.artifact_suffix }}
           path: |
-            build/bin/*
-            build/*.zip
-            build/*.tar.gz
-            build/*.exe
+            build/release/*

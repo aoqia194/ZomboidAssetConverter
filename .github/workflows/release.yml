@@ -43,6 +43,6 @@ jobs:
           tag_name: v${{ needs.build.outputs.project_version }}
           name: v${{ needs.build.outputs.project_version }}
           working_directory: build
-          files: "**/*"
+          files: "*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
