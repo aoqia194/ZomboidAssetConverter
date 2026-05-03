@@ -21,10 +21,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_suffix: linux
-            triplet: ""
+            triplet: "x64-linux"
           - os: macos-latest
             artifact_suffix: macos
-            triplet: ""
+            triplet: "x64-osx"
           - os: windows-latest
             artifact_suffix: windows
             triplet: "x64-windows-static"
@@ -42,21 +42,23 @@ jobs:
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+      
+      - name: Prints output of run-vcpkg's action
+        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
 
       - name: Run CMake and vcpkg
         uses: lukka/run-cmake@v10
         with:
           configurePreset: release
-        # env:
-        #   VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
-        #   VCPKG_DEFAULT_HOST_TRIPLET: "${{ matrix.triplet }}"
-        #   VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
+        env:
+          VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
 
       - name: Get CMake project version
         id: get_project_version
         shell: bash
         run: |
-          VERSION=$(grep -m 1 'VERSION' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          VERSION=$(grep -m 2 'VERSION' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           echo "PROJECT_VERSION=$VERSION" >> $GITHUB_OUTPUT
       
       - name: Upload build artifacts
