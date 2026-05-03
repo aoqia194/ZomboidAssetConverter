@@ -58,6 +58,8 @@ jobs:
           buildPreset: release
           # buildPresetAdditionalArgs: "['--config Release']"
         env:
+          # Really enforce it, because vcpkg doesn't like to listen...
+          VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
           VCPKG_HOST_TRIPLET: "${{ matrix.triplet }}"
           VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
 
