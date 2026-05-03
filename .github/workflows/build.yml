@@ -21,13 +21,16 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_suffix: linux
-            triplet: "x64-linux"
+            triplet: x64-linux
           - os: macos-latest
-            artifact_suffix: macos
-            triplet: "x64-osx"
+            artifact_suffix: macos-arm64
+            triplet: arm64-osx
+          - os: macos-26-intel
+            triplet: x64-osx
+            artifact_suffix: macos-x64
           - os: windows-latest
             artifact_suffix: windows
-            triplet: "x64-windows-static"
+            triplet: x64-windows-static
 
     runs-on: ${{ matrix.os }}
     outputs:
@@ -55,6 +58,7 @@ jobs:
           buildPreset: release
           # buildPresetAdditionalArgs: "['--config Release']"
         env:
+          VCPKG_HOST_TRIPLET: "${{ matrix.triplet }}"
           VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
 
       - name: Get CMake project version
