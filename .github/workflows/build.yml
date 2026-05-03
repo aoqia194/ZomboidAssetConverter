@@ -21,10 +21,13 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_suffix: linux
+            triplet: ""
           - os: macos-latest
             artifact_suffix: macos
+            triplet: ""
           - os: windows-latest
             artifact_suffix: windows
+            triplet: "x64-windows-static"
 
     runs-on: ${{ matrix.os }}
     outputs:
@@ -44,10 +47,10 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           configurePreset: release
-        env:
-          VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
-          VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.triplet }}
-          VCPKG_TARGET_TRIPLET: ${{ matrix.triplet }}
+        # env:
+        #   VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
+        #   VCPKG_DEFAULT_HOST_TRIPLET: "${{ matrix.triplet }}"
+        #   VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
 
       - name: Get CMake project version
         id: get_project_version
