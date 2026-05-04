@@ -6,7 +6,7 @@ elseif (WIN32)
     set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "vcpkg triplet" FORCE)
 endif ()
 
-project(ZomboidAssetConverter LANGUAGES CXX VERSION 1.1.2)
+project(ZomboidAssetConverter LANGUAGES CXX VERSION 1.1.1)
 set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
