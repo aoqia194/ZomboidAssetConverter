@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    # ONLY UNCOMMENT IF RELEASE IS NOT TAG-ONLY
+    # branches-ignore:
+    #   - main
+  workflow_call:
+    outputs:
+      project_version:
+        description: "The project version (extracted from CMake)"
+        value: ${{ jobs.build.outputs.project_version }}
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            artifact_suffix: linux
+            triplet: x64-linux
+          - os: macos-latest
+            artifact_suffix: macos-arm64
+            triplet: arm64-osx
+          - os: macos-26-intel
+            triplet: x64-osx
+            artifact_suffix: macos-x64
+          - os: windows-latest
+            artifact_suffix: windows
+            triplet: x64-windows-static
+
+    runs-on: ${{ matrix.os }}
+    outputs:
+      project_version: ${{ steps.get_project_version.outputs.PROJECT_VERSION }}
+
+    env:
+      # Really enforce it, because vcpkg doesn't like to listen...
+      VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
+      VCPKG_HOST_TRIPLET: "${{ matrix.triplet }}"
+      VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@v4.3.2
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+      
+      - name: Prints output of run-vcpkg's action
+        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
+
+      - name: Run CMake and vcpkg
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: release
+          # configurePresetAdditionalArgs: "['--config Release']"
+          buildPreset: release
+          # buildPresetAdditionalArgs: "['--config Release']"
+      - name: Get CMake project version
+        id: get_project_version
+        shell: bash
+        run: |
+          VERSION=$(grep -m 2 'VERSION' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          echo "PROJECT_VERSION=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ZomboidAssetConverter-${{ matrix.artifact_suffix }}
+          path: |
+            build/release/bin/*
+          retention-days: 3

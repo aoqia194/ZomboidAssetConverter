@@ -7,37 +7,47 @@
     },
     "configurePresets": [
         {
-            "name": "default",
+            "name": "base",
             "hidden": true,
             "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+                "VCPKG_CRT_LINKAGE": "static",
                 "VCPKG_LIBRARY_LINKAGE": "static",
                 "VCPKG_DEFAULT_TRIPLET": "$env{VCPKG_DEFAULT_TRIPLET}",
-                "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}",
-                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                "VCPKG_HOST_TRIPLET": "$env{VCPKG_HOST_TRIPLET}",
+                "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}"
             }
         },
         {
             "name": "debug",
-            "displayName": "Debug",
-            "inherits": [
-                "default"
-            ],
-            "binaryDir": "${sourceDir}/build/debug",
+            "displayName": "Debug (static)",
+            "inherits": "base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "release",
-            "displayName": "Release",
-            "inherits": [
-                "default"
-            ],
-            "binaryDir": "${sourceDir}/build/release",
+            "displayName": "Release (static)",
+            "inherits": "base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
         }
     ]
 }

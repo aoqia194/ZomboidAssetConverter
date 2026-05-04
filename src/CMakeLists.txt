@@ -3,16 +3,16 @@ set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.hpp")
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.cpp")
 
-if (MSVC)
-    add_compile_options(
-            $<$<CONFIG:>:/MT>
-            $<$<CONFIG:Debug>:/MTd>
-            $<$<CONFIG:Release>:/MT>
-    )
-endif ()
+# if (MSVC)
+#     add_compile_options(
+#             $<$<CONFIG:>:/MT>
+#             $<$<CONFIG:Debug>:/MTd>
+#             $<$<CONFIG:Release>:/MT>
+#     )
+# endif ()
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
+# set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 
 if (CMAKE_COMPILER_IS_GNUCXX)

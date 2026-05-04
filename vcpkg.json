@@ -1,15 +1,19 @@
 {
-  "name" : "zomboidassetconverter",
-  "version-string" : "1.0.0",
-  "builtin-baseline" : "57c08a3223a1ec03c3a31986ee38d32e90b6039c",
-  "dependencies" : [ {
-    "name" : "cxxopts",
-    "version>=" : "3.2.1"
-  }, {
-    "name" : "spdlog",
-    "version>=" : "1.15.0#1"
-  }, {
-    "name" : "assimp",
-    "version>=" : "6.0.2"
-  } ]
+  "name": "zomboidassetconverter",
+  "version-string": "1.0.0",
+  "builtin-baseline": "256acc64012b23a13041d8705805e1f23b43a024",
+  "dependencies": [
+    {
+      "name": "assimp",
+      "version>=": "6.0.4"
+    },
+    {
+      "name": "cxxopts",
+      "version>=": "3.3.1"
+    },
+    {
+      "name": "spdlog",
+      "version>=": "1.17.0"
+    }
+  ]
 }
