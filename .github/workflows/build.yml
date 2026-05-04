@@ -36,6 +36,12 @@ jobs:
     outputs:
       project_version: ${{ steps.get_project_version.outputs.PROJECT_VERSION }}
 
+    env:
+      # Really enforce it, because vcpkg doesn't like to listen...
+      VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
+      VCPKG_HOST_TRIPLET: "${{ matrix.triplet }}"
+      VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -57,12 +63,6 @@ jobs:
           # configurePresetAdditionalArgs: "['--config Release']"
           buildPreset: release
           # buildPresetAdditionalArgs: "['--config Release']"
-        env:
-          # Really enforce it, because vcpkg doesn't like to listen...
-          VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
-          VCPKG_HOST_TRIPLET: "${{ matrix.triplet }}"
-          VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
-
       - name: Get CMake project version
         id: get_project_version
         shell: bash
