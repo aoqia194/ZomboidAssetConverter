@@ -15,7 +15,7 @@
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "MSVC_RUNTIME_LIBRARY": "MultiThreaded",
+                "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
                 "VCPKG_CRT_LINKAGE": "static",
                 "VCPKG_LIBRARY_LINKAGE": "static",
                 "VCPKG_DEFAULT_TRIPLET": "$env{VCPKG_DEFAULT_TRIPLET}",
