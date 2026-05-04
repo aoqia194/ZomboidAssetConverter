@@ -5,6 +5,7 @@ on:
     # ONLY UNCOMMENT IF RELEASE IS NOT TAG-ONLY
     # branches-ignore:
     #   - main
+  pull_request:
   workflow_call:
     outputs:
       project_version:
