@@ -2,9 +2,12 @@ name: Build
 
 on:
   push:
-    # ONLY UNCOMMENT IF RELEASE IS NOT TAG-ONLY
-    # branches-ignore:
-    #   - main
+    paths:
+      - ".github/**/*"
+      - "src/**/*"
+      - "**/CMakeLists.txt"
+      - "**/CMakePresets.json"
+      - "vcpkg.json"
   pull_request:
   workflow_call:
     outputs:
