@@ -2,6 +2,9 @@ name: Build
 
 on:
   push:
+    # Because ignoring tags also ignores branches (like, seriously?)
+    branches:
+      - "**"
     tags-ignore:
       - "**"
   pull_request:
