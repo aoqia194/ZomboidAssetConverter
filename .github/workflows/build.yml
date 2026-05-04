@@ -4,12 +4,8 @@ on:
   push:
     tags-ignore:
       - "**"
-    paths:
-      - ".github/**"
-      - "src/**"
-      - "**/CMakeLists.txt"
-      - "**/CMakePresets.json"
-      - "vcpkg.json"
+    paths-ignore:
+      - "**.md"
   pull_request:
   workflow_call:
     outputs:

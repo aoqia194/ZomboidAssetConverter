@@ -1,21 +1,11 @@
 name: Release
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - "src/**"
-#       - "**/CMakeLists.txt"
-#       - "**/CMakePresets.json"
-#       - "vcpkg.json"
-#   workflow_call:
-#   workflow_dispatch:
-
 on:
   push:
     tags:
       - "v*.*.*"
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   build:
