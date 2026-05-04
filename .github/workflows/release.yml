@@ -34,7 +34,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: ./build
-          pattern: build-assets-*
+          pattern: ZomboidAssetConverter-*
           merge-multiple: true
 
       - name: Create release
