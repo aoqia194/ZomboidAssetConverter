@@ -33,8 +33,8 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
-          path: ./build
-          pattern: ZomboidAssetConverter-*
+          path: ./build/release/bin
+          pattern: build-output-*
           merge-multiple: true
 
       - name: Create release
@@ -42,7 +42,7 @@ jobs:
         with:
           tag_name: v${{ needs.build.outputs.project_version }}
           name: v${{ needs.build.outputs.project_version }}
-          working_directory: build
+          working_directory: build/release/bin
           files: "*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -69,6 +69,7 @@ jobs:
           # configurePresetAdditionalArgs: "['--config Release']"
           buildPreset: release
           # buildPresetAdditionalArgs: "['--config Release']"
+
       - name: Get CMake project version
         id: get_project_version
         shell: bash
@@ -79,7 +80,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ZomboidAssetConverter-${{ matrix.artifact_suffix }}
+          name: build-output-${{ matrix.artifact_suffix }}
           path: |
             build/release/bin/*
           retention-days: 3
