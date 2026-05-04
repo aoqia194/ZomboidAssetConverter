@@ -5,8 +5,8 @@ on:
     tags-ignore:
       - "**"
     paths:
-      - ".github/**/*"
-      - "src/**/*"
+      - ".github/**"
+      - "src/**"
       - "**/CMakeLists.txt"
       - "**/CMakePresets.json"
       - "vcpkg.json"
