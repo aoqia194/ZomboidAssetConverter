@@ -4,6 +4,7 @@
 !/.github
 !/src
 
+!/.cz.toml
 !/.gitattributes
 !/.gitignore
 !/.editorconfig
