@@ -4,14 +4,17 @@
 !/.github
 !/src
 
+!/**/*.md
+!/**/CMakeLists.txt
+
 !/.cz.toml
 !/.gitattributes
 !/.gitignore
 !/.editorconfig
 !/.clang-format
-!/vcpkg.json
-!/**/CMakeLists.txt
+!/CHANGELOG.md
+!/CMakeLists.txt
 !/CMakePresets.json
-!/HEADER
 !/LICENSE
-!/**/*.md
+!/README.md
+!/vcpkg.json
