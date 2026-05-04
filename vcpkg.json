@@ -1,6 +1,6 @@
 {
   "name": "zomboidassetconverter",
-  "version-string": "1.1.1",
+  "version-string": "1.1.2",
   "builtin-baseline": "256acc64012b23a13041d8705805e1f23b43a024",
   "dependencies": [
     {

@@ -1,3 +1,9 @@
+## v1.1.2 (2026-05-04)
+
+### Fix
+
+- **build**: commitizen not bumping all versions
+
 ## v1.1.1 (2025-06-30)
 
 ### Fix
