@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.30)
 
+if (DEFINED ENV{VCPKG_TARGET_TRIPLET})
+    set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_TARGET_TRIPLET}" CACHE STRING "vcpkg triplet" FORCE)
+elseif (WIN32)
+    set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "vcpkg triplet" FORCE)
+endif ()
+
 project(ZomboidAssetConverter LANGUAGES CXX VERSION 1.1.2)
 set(CMAKE_CXX_STANDARD 23)
 

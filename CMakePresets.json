@@ -17,10 +17,7 @@
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
                 "VCPKG_CRT_LINKAGE": "static",
-                "VCPKG_LIBRARY_LINKAGE": "static",
-                "VCPKG_DEFAULT_TRIPLET": "$env{VCPKG_DEFAULT_TRIPLET}",
-                "VCPKG_HOST_TRIPLET": "$env{VCPKG_HOST_TRIPLET}",
-                "VCPKG_TARGET_TRIPLET": "$env{VCPKG_TARGET_TRIPLET}"
+                "VCPKG_LIBRARY_LINKAGE": "static"
             }
         },
         {
