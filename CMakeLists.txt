@@ -24,4 +24,39 @@ find_package(cxxopts CONFIG REQUIRED)
 # For assimp to be built as a static library.
 set(BUILD_SHARED_LIBS OFF)
 
-add_subdirectory(src)
+# SETUP SOURCES
+
+set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
+
+file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.hpp")
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.cpp")
+
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+# set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
+
+# Warnings are errors etc
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX /permissive-)
+else ()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
+endif ()
+
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog cxxopts::cxxopts assimp::assimp)
+
+# SETUP CPACK
+
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VENDOR "aoqia")
+set(CPACK_GENERATOR "ZIP")
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+
+if (DEFINED ENV{CI_ARTIFACT_SUFFIX} AND NOT "$ENV{CI_ARTIFACT_SUFFIX}" STREQUAL "")
+    message(STATUS "Found CI_ARTIFACT_SUFFIX! It is set to: $ENV{CI_ARTIFACT_SUFFIX}")
+    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-$ENV{CI_ARTIFACT_SUFFIX}")
+else ()
+    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}")
+endif ()
+
+install(TARGETS ${PROJECT_NAME} DESTINATION .)
+
+include(CPack)

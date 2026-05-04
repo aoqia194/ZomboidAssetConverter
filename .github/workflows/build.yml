@@ -43,9 +43,9 @@ jobs:
       project_version: ${{ steps.get_project_version.outputs.PROJECT_VERSION }}
 
     env:
+      CI_ARTIFACT_SUFFIX: "${{ matrix.artifact_suffix }}"
       # Really enforce it, because vcpkg doesn't like to listen...
       VCPKG_DEFAULT_TRIPLET: "${{ matrix.triplet }}"
-      VCPKG_HOST_TRIPLET: "${{ matrix.triplet }}"
       VCPKG_TARGET_TRIPLET: "${{ matrix.triplet }}"
 
     steps:
@@ -69,6 +69,7 @@ jobs:
           # configurePresetAdditionalArgs: "['--config Release']"
           buildPreset: release
           # buildPresetAdditionalArgs: "['--config Release']"
+          packagePreset: release
 
       - name: Get CMake project version
         id: get_project_version
@@ -82,5 +83,5 @@ jobs:
         with:
           name: build-output-${{ matrix.artifact_suffix }}
           path: |
-            build/release/bin/*
+            build/release/ZomboidAssetConverter-${{ matrix.artifact_suffix }}.zip
           retention-days: 3
